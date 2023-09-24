@@ -1,8 +1,9 @@
+mod camera;
 mod world;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
-use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
+use camera::EditorCameraPlugin;
 
 fn main() {
     App::new()
@@ -10,59 +11,13 @@ fn main() {
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
-            FlyingCameraPlugin,
+            EditorCameraPlugin,
         ))
-        .add_systems(Startup, (spawn_camera, spawn_objects))
+        .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)
         .run();
 }
-
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(-6.0, 6.0, 12.0),
-            ..Default::default()
-        },
-        FlyingCameraBundle::default(),
-    ));
-}
-
-fn spawn_objects(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Ground
-    commands.spawn((
-        Collider::cuboid(100.0, 0.1, 100.0),
-        PbrBundle {
-            mesh: meshes.add(shape::Box::new(200.0, 0.2, 200.0).into()),
-            material: materials.add(StandardMaterial {
-                base_color: Color::GRAY,
-                ..default()
-            }),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..default()
-        },
-    ));
-
-    // Cube
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(shape::Cube::new(2.0).into()),
-            material: materials.add(StandardMaterial {
-                base_color: Color::ORANGE,
-                perceptual_roughness: 1.0,
-                ..default()
-            }),
-            transform: Transform::from_xyz(0.0, 1.5, 0.0),
-            ..default()
-        },
-        RigidBody::Dynamic,
-        Collider::cuboid(1.0, 1.0, 1.0),
-    ));
-
-    // Light
+fn spawn_light(mut commands: Commands) {
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             shadows_enabled: true,
