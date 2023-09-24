@@ -5,6 +5,25 @@ use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
 
+/* Project plans:
+
+- General:
+    - Color mixer & picker stuff.
+    - Screenshots, for thumbnail image & just for taking pictures and saving to file.
+
+- Editor tools:
+    - Build with click.
+    - Drag to build multiple blocks.
+    - Block selections, to move or delete the selection.
+
+- Data:
+    - Save & load all built blocks to files.
+    - Overview menu of these files (open, delete, rename etc.).
+
+*/
+
+// TODO: make color library to store all available colors
+
 fn main() {
     App::new()
         .add_plugins((
@@ -17,6 +36,7 @@ fn main() {
         .add_systems(Update, window::close_on_esc)
         .run();
 }
+
 fn spawn_light(mut commands: Commands) {
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {

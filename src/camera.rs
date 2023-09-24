@@ -10,6 +10,10 @@ impl Plugin for EditorCameraPlugin {
     }
 }
 
+// TODO: make from the depths style camera, maybe replace current with it.
+// TODO: raycast utilities for interaction.
+// TODO: Select blocks by clicking on them
+
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera3dBundle {
