@@ -1,7 +1,8 @@
-use std::f32::consts::PI;
+mod world;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
+use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
 fn main() {
     App::new()
@@ -9,6 +10,7 @@ fn main() {
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
+            FlyingCameraPlugin,
         ))
         .add_systems(Startup, (spawn_camera, spawn_objects))
         .add_systems(Update, window::close_on_esc)
@@ -16,10 +18,13 @@ fn main() {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(-6.0, 6.0, 12.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..Default::default()
-    });
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(-6.0, 6.0, 12.0),
+            ..Default::default()
+        },
+        FlyingCameraBundle::default(),
+    ));
 }
 
 fn spawn_objects(
@@ -66,7 +71,7 @@ fn spawn_objects(
         },
         transform: Transform {
             translation: Vec3::new(0.0, 20.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
+            rotation: Quat::from_rotation_x(-45f32.to_radians()),
             ..default()
         },
         ..default()
