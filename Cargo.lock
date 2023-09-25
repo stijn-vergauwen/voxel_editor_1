@@ -1590,6 +1590,7 @@ dependencies = [
 [[package]]
 name = "flying_camera"
 version = "0.1.0"
+source = "git+https://github.com/stijn-vergauwen/flying_camera.git#f9aa9a2dfc3ff5af67c49304274baaca4f852e46"
 dependencies = [
  "bevy",
 ]
