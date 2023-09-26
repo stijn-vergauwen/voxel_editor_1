@@ -13,6 +13,9 @@ impl Plugin for WorldPlugin {
 // TODO: make world size configurable.
 // TODO: make block struct
 // TODO: replace voxel ids array with blocks array, store it as block structs instead of ids. (don't optimize prematurely)
+// TODO: block size should be adjustable
+// TODO: split chunk, block, index, spawning to modules
+// TODO:
 
 #[derive(Component)]
 struct Chunk {

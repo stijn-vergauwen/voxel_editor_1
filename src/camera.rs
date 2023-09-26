@@ -129,4 +129,8 @@ mod tests {
     // use super::*;
 
     // Idk how to write tests for raycasting from camera since this uses a lot of Bevy components.
+
+    // TODO: create targetBlock
+    // TODO: calculate in & out positions
+    // TODO: flipped normal should flip in & out
 }
