@@ -109,7 +109,8 @@ fn update_interaction_target(
 fn draw_target_block_gizmos(cameras: Query<&CameraInteraction>, mut gizmos: Gizmos) {
     for camera in cameras.iter() {
         if let Some(target) = &camera.target {
-            gizmos.sphere(target.out_position, Quat::IDENTITY, 0.5, Color::BISQUE);
+            gizmos.cuboid(Transform::from_translation(target.in_position), Color::WHITE);
+            gizmos.cuboid(Transform::from_translation(target.out_position), Color::CYAN);
             gizmos.ray(target.hit_position, target.normal, Color::BLUE);
         }
     }

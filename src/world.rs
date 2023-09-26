@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
 
 pub struct WorldPlugin;
 
@@ -106,11 +107,16 @@ fn spawn_chunk_blocks(
     mesh_handle: Handle<Mesh>,
     material_handle: Handle<StandardMaterial>,
 ) {
-    commands.spawn_batch(blocks.into_iter().map(move |transform| PbrBundle {
-        mesh: mesh_handle.clone(),
-        material: material_handle.clone(),
-        transform,
-        ..default()
+    commands.spawn_batch(blocks.into_iter().map(move |transform| {
+        (
+            PbrBundle {
+                mesh: mesh_handle.clone(),
+                material: material_handle.clone(),
+                transform,
+                ..default()
+            },
+            Collider::cuboid(0.5, 0.5, 0.5),
+        )
     }));
 }
 
