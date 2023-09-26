@@ -4,6 +4,7 @@ mod world;
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
+use world::WorldPlugin;
 
 /* Standards to hold myself to this project:
 
@@ -40,6 +41,7 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
             EditorCameraPlugin,
+            WorldPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)

@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.11", features = ["dynamic_linking"] }
 bevy_rapier3d = { version = "0.22", features = ["debug-render-3d"] }
-flying_camera = { version = "0.1.0", path = "../../Plugins/Game/flying_camera" }
+flying_camera = { version = "0.1.0", git = "https://github.com/stijn-vergauwen/flying_camera.git" }
 
 [profile.dev]
 opt-level = 1
