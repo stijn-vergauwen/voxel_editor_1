@@ -5,6 +5,15 @@ use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
 
+/* Standards to hold myself to this project:
+
+    - Build this project using TDD. Write tests first, then functionality.
+    - System functions should only pass data, decouple querying from calculations.
+    - Use events for all interaction and stuff. (specify this further)
+    - Build newtypes whenever this would describe data better.
+
+*/
+
 /* Project plans:
 
 - General:
