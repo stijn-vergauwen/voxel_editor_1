@@ -105,7 +105,10 @@ fn redraw_changed_chunks(
             ..default()
         });
 
-        spawn_chunk_blocks(&mut commands, blocks, mesh_handle, material_handle);
+        let block_entities =
+            spawn_chunk_blocks(&mut commands, blocks, mesh_handle, material_handle);
+
+        commands.entity(chunk_entity).push_children(&block_entities);
     }
 }
 
@@ -116,18 +119,26 @@ fn spawn_chunk_blocks(
     blocks: Vec<Transform>,
     mesh_handle: Handle<Mesh>,
     material_handle: Handle<StandardMaterial>,
-) {
-    commands.spawn_batch(blocks.into_iter().map(move |transform| {
-        (
-            PbrBundle {
-                mesh: mesh_handle.clone(),
-                material: material_handle.clone(),
-                transform,
-                ..default()
-            },
-            Collider::cuboid(0.5, 0.5, 0.5),
-        )
-    }));
+) -> Vec<Entity> {
+    let mut spawned_entities = Vec::new();
+
+    for block in blocks.iter() {
+        let id = commands
+            .spawn((
+                PbrBundle {
+                    mesh: mesh_handle.clone(),
+                    material: material_handle.clone(),
+                    transform: *block,
+                    ..default()
+                },
+                Collider::cuboid(0.5, 0.5, 0.5),
+            ))
+            .id();
+
+        spawned_entities.push(id);
+    }
+
+    spawned_entities
 }
 
 fn build_block_at_index(index: ChunkIndex) -> Transform {
