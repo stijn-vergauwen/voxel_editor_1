@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::camera::building::{PlaceBlockRequest, RemoveBlockRequest};
 
-use super::{Chunk, ChunkIndex};
+use super::Chunk;
 
 pub struct WorldInteractionPlugin;
 
@@ -18,13 +18,7 @@ fn handle_place_request(
 ) {
     for event in place_events.iter() {
         for mut chunk in chunks.iter_mut() {
-            let index = ChunkIndex::new(
-                event.position.x as usize,
-                event.position.y as usize,
-                event.position.z as usize,
-            );
-
-            chunk.set_block_id(index, event.block_id);
+            chunk.set_block_id(event.position, event.block_id);
         }
     }
 }
@@ -35,13 +29,7 @@ fn handle_remove_request(
 ) {
     for event in remove_events.iter() {
         for mut chunk in chunks.iter_mut() {
-            let index = ChunkIndex::new(
-                event.position.x as usize,
-                event.position.y as usize,
-                event.position.z as usize,
-            );
-
-            chunk.set_block_id(index, 0);
+            chunk.set_block_id(event.position, 0);
         }
     }
 }

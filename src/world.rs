@@ -65,15 +65,25 @@ impl Chunk {
 }
 
 #[derive(Clone, Copy)]
-struct ChunkIndex {
+pub struct ChunkIndex {
     x: usize,
     y: usize,
     z: usize,
 }
 
 impl ChunkIndex {
-    fn new(x: usize, y: usize, z: usize) -> Self {
+    pub fn new(x: usize, y: usize, z: usize) -> Self {
         Self { x, y, z }
+    }
+}
+
+impl From<Vec3> for ChunkIndex {
+    fn from(value: Vec3) -> Self {
+        ChunkIndex {
+            x: value.x as usize,
+            y: value.y as usize,
+            z: value.z as usize,
+        }
     }
 }
 
