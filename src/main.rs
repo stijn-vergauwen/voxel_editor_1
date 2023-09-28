@@ -10,7 +10,7 @@ use world::WorldPlugin;
 
     - Build this project using TDD. Write tests first, then functionality.
     - System functions should only pass data, decouple querying from calculations.
-    - Use events for all interaction and stuff. (specify this further)
+    - Use events for everything that doesn't happen every frame. (interactions etc.)
     - Build newtypes whenever this would describe data better.
 
 */

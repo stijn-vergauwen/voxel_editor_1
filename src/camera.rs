@@ -22,10 +22,11 @@ impl Plugin for EditorCameraPlugin {
 // TODO: make from the depths style camera, maybe replace current with it.
 // TODO: raycast utilities for interaction. <- doing
 // TODO: Select blocks by clicking on them
+// TODO: event for when targetblock changes
 
 #[derive(Component)]
 struct CameraInteraction {
-    distance: f32,
+    ray_distance: f32,
     cursor_ray: Option<Ray>,
     target: Option<TargetBlock>,
 }
@@ -35,7 +36,7 @@ impl Default for CameraInteraction {
         Self {
             cursor_ray: None,
             target: None,
-            distance: 20.0,
+            ray_distance: 20.0,
         }
     }
 }
@@ -45,7 +46,6 @@ struct TargetBlock {
     normal: Vec3,
     in_position: Vec3,
     out_position: Vec3,
-    hit_position: Vec3,
 }
 
 impl TargetBlock {
@@ -62,7 +62,6 @@ impl TargetBlock {
             normal,
             in_position,
             out_position,
-            hit_position: point,
         }
     }
 }
@@ -90,31 +89,31 @@ fn update_cursor_ray(
 }
 
 fn update_interaction_target(
-    rapier_context: ResMut<RapierContext>,
+    rapier_context: Res<RapierContext>,
     mut cameras: Query<&mut CameraInteraction>,
 ) {
     for mut camera in cameras.iter_mut() {
-        if let Some(ray) = camera.cursor_ray {
-            let ray_origin = ray.origin;
-            let ray_dir = ray.direction;
-            let max_toi = camera.distance;
-
-            camera.target = rapier_context
-                .cast_ray_and_get_normal(ray_origin, ray_dir, max_toi, true, QueryFilter::new())
-                .map(|(entity, intersection)| TargetBlock::from_raycast(entity, intersection))
-        }
+        camera.target = cast_ray_to_target_block(&rapier_context, &camera);
     }
 }
 
 fn draw_target_block_gizmos(cameras: Query<&CameraInteraction>, mut gizmos: Gizmos) {
     for camera in cameras.iter() {
         if let Some(target) = &camera.target {
-            gizmos.cuboid(Transform::from_translation(target.in_position), Color::WHITE);
-            gizmos.cuboid(Transform::from_translation(target.out_position), Color::CYAN);
-            gizmos.ray(target.hit_position, target.normal, Color::BLUE);
+            gizmos.cuboid(
+                Transform::from_translation(target.in_position),
+                Color::WHITE,
+            );
+            gizmos.cuboid(
+                Transform::from_translation(target.out_position),
+                Color::CYAN,
+            );
+            gizmos.ray(target.in_position, target.normal, Color::BLUE);
         }
     }
 }
+
+// Utilities
 
 fn get_cursor_as_ray(
     camera: &Camera,
@@ -122,6 +121,23 @@ fn get_cursor_as_ray(
     window: &Window,
 ) -> Option<Ray> {
     camera.viewport_to_world(global_transform, window.cursor_position()?)
+}
+
+fn cast_ray_to_target_block(
+    rapier: &RapierContext,
+    camera: &CameraInteraction,
+) -> Option<TargetBlock> {
+    let ray = camera.cursor_ray?;
+
+    let intersection = rapier.cast_ray_and_get_normal(
+        ray.origin,
+        ray.direction,
+        camera.ray_distance,
+        false,
+        QueryFilter::new(),
+    );
+
+    intersection.map(|(entity, intersection)| TargetBlock::from_raycast(entity, intersection))
 }
 
 #[cfg(test)]
