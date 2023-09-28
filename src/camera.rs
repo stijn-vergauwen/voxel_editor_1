@@ -1,14 +1,16 @@
-mod building;
+pub mod building;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
+use self::building::CameraBuildingPlugin;
+
 pub struct EditorCameraPlugin;
 
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(FlyingCameraPlugin)
+        app.add_plugins((FlyingCameraPlugin, CameraBuildingPlugin))
             .add_systems(Startup, spawn_camera)
             .add_systems(
                 Update,

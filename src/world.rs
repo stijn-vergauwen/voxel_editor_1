@@ -1,11 +1,16 @@
+mod interaction;
+
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
+
+use self::interaction::WorldInteractionPlugin;
 
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_chunk)
+        app.add_plugins(WorldInteractionPlugin)
+            .add_systems(Startup, spawn_chunk)
             .add_systems(Update, redraw_changed_chunks);
     }
 }
@@ -103,6 +108,8 @@ fn redraw_changed_chunks(
         spawn_chunk_blocks(&mut commands, blocks, mesh_handle, material_handle);
     }
 }
+
+// Utilities
 
 fn spawn_chunk_blocks(
     commands: &mut Commands,

@@ -18,8 +18,8 @@ const REMOVE_KEY: KeyCode = KeyCode::ShiftLeft;
 
 #[derive(Event)]
 pub struct PlaceBlockRequest {
-    block_id: u8,
-    position: Vec3,
+    pub block_id: u8,
+    pub position: Vec3,
 }
 
 impl PlaceBlockRequest {
@@ -30,7 +30,7 @@ impl PlaceBlockRequest {
 
 #[derive(Event)]
 pub struct RemoveBlockRequest {
-    position: Vec3,
+    pub position: Vec3,
 }
 
 impl RemoveBlockRequest {
