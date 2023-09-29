@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::camera::building::{PlaceBlockRequest, RemoveBlockRequest};
 
-use super::Chunk;
+use crate::world::chunk::Chunk;
 
 pub struct WorldInteractionPlugin;
 

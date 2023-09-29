@@ -24,7 +24,6 @@ impl Plugin for EditorCameraPlugin {
 }
 
 // TODO: make from the depths style camera, maybe replace current with it.
-// TODO: raycast utilities for interaction. <- doing
 // TODO: Select blocks by clicking on them
 // TODO: event for when targetblock changes
 

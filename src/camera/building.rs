@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use flying_camera::FlyingCamera;
 
-use crate::world::ChunkIndex;
+use crate::world::coordinates::ChunkIndex;
 
 use super::CameraInteraction;
 
