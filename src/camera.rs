@@ -45,14 +45,14 @@ impl Default for CameraInteraction {
 }
 
 struct TargetBlock {
-    block_entity: Entity,
+    // block_entity: Entity,
     normal: Vec3,
     in_position: Vec3,
     out_position: Vec3,
 }
 
 impl TargetBlock {
-    fn from_raycast(entity: Entity, intersection: RayIntersection) -> Self {
+    fn from_raycast(intersection: RayIntersection) -> Self {
         // TODO: in & out positions don't account for block size
         let point = intersection.point;
         let normal = intersection.normal;
@@ -61,7 +61,6 @@ impl TargetBlock {
         let out_position = (point + normal / 2.0).round();
 
         Self {
-            block_entity: entity,
             normal,
             in_position,
             out_position,
@@ -140,7 +139,7 @@ fn cast_ray_to_target_block(
         QueryFilter::new(),
     );
 
-    intersection.map(|(entity, intersection)| TargetBlock::from_raycast(entity, intersection))
+    intersection.map(|(_, intersection)| TargetBlock::from_raycast(intersection))
 }
 
 #[cfg(test)]

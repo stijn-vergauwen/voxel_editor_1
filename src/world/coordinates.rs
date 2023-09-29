@@ -13,6 +13,10 @@ impl ChunkIndex {
     pub fn new(x: usize, y: usize, z: usize) -> Self {
         Self { x, y, z }
     }
+
+    pub fn max_element(&self) -> usize {
+        self.x.max(self.y.max(self.z))
+    }
 }
 
 impl From<Vec3> for ChunkIndex {

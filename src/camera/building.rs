@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use flying_camera::FlyingCamera;
 
-use crate::world::coordinates::ChunkIndex;
+use crate::world::{coordinates::ChunkIndex, block::Block};
 
 use super::CameraInteraction;
 
@@ -20,13 +20,13 @@ const REMOVE_KEY: KeyCode = KeyCode::ShiftLeft;
 
 #[derive(Event)]
 pub struct PlaceBlockRequest {
-    pub block_id: u8,
+    pub block: Option<Block>,
     pub position: ChunkIndex,
 }
 
 impl PlaceBlockRequest {
-    fn new(block_id: u8, position: ChunkIndex) -> Self {
-        Self { block_id, position }
+    fn new(block: Option<Block>, position: ChunkIndex) -> Self {
+        Self { block, position }
     }
 }
 
@@ -57,7 +57,7 @@ fn send_build_event(
                     )));
                 } else {
                     place_event.send(PlaceBlockRequest::new(
-                        1,
+                        Some(Block),
                         ChunkIndex::from(target.out_position),
                     ));
                 }

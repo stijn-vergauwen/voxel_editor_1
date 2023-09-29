@@ -1,4 +1,4 @@
-mod block;
+pub mod block;
 mod builder;
 mod chunk;
 pub mod coordinates;
@@ -20,7 +20,6 @@ impl Plugin for WorldPlugin {
 }
 
 // TODO: make world size configurable.
-// TODO: make block struct
 // TODO: replace voxel ids array with blocks array, store it as block structs instead of ids. (don't optimize prematurely)
 // TODO: block size should be adjustable
 // TODO: event for when a chunk needs to update
@@ -28,7 +27,6 @@ impl Plugin for WorldPlugin {
 // TODO:
 
 // Utilities
-
 
 // TODO: These transform returns don't make sense, replace with index to position utils
 fn build_block_at_index(index: ChunkIndex) -> Transform {
@@ -45,7 +43,7 @@ fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<Transform> {
             for z in 0..16 {
                 let index = ChunkIndex::new(x, y, z);
 
-                if chunk.get_block_id(index) == 1 {
+                if chunk.get_block(index).is_some() {
                     blocks.push(build_block_at_index(index));
                 }
             }

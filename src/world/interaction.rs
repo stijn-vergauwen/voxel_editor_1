@@ -18,7 +18,7 @@ fn handle_place_request(
 ) {
     for event in place_events.iter() {
         for mut chunk in chunks.iter_mut() {
-            chunk.set_block_id(event.position, event.block_id);
+            chunk.set_block(event.position, event.block);
         }
     }
 }
@@ -29,7 +29,7 @@ fn handle_remove_request(
 ) {
     for event in remove_events.iter() {
         for mut chunk in chunks.iter_mut() {
-            chunk.set_block_id(event.position, 0);
+            chunk.set_block(event.position, None);
         }
     }
 }
