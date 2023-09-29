@@ -1,16 +1,16 @@
 use bevy::prelude::*;
 
-use super::{block::Block, build_blocks_of_chunk, coordinates::ChunkIndex};
+use super::{block::Block, build_blocks_of_chunk, coordinates::ChunkIndex, CHUNK_SIZE};
 
 #[derive(Component)]
 pub struct Chunk {
-    blocks: [[[Option<Block>; 16]; 16]; 16],
+    blocks: [[[Option<Block>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     pub data_changed: bool,
 }
 
 impl Chunk {
     pub const EMPTY: Self = Self {
-        blocks: [[[None; 16]; 16]; 16],
+        blocks: [[[None; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
         data_changed: false,
     };
 
@@ -18,10 +18,15 @@ impl Chunk {
         if self.outside_bounds(index) {
             return None;
         }
+
         self.blocks[index.x][index.y][index.z]
     }
 
     pub fn set_block(&mut self, index: ChunkIndex, block: Option<Block>) {
+        if self.outside_bounds(index) {
+            return;
+        }
+
         self.blocks[index.x][index.y][index.z] = block;
         self.data_changed = true;
     }
@@ -33,9 +38,9 @@ impl Chunk {
     pub fn flat_ground(ground_height: usize) -> Self {
         let mut chunk = Chunk::EMPTY;
 
-        for x in 0..16 {
+        for x in 0..CHUNK_SIZE {
             for y in 0..ground_height {
-                for z in 0..16 {
+                for z in 0..CHUNK_SIZE {
                     let index = ChunkIndex::new(x, y, z);
                     chunk.set_block(index, Some(Block));
                 }

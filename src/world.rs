@@ -19,11 +19,11 @@ impl Plugin for WorldPlugin {
     }
 }
 
-// TODO: make world size configurable.
+const CHUNK_SIZE: usize = 16;
+
 // TODO: replace voxel ids array with blocks array, store it as block structs instead of ids. (don't optimize prematurely)
 // TODO: block size should be adjustable
 // TODO: event for when a chunk needs to update
-// TODO: block id newtype
 // TODO:
 
 // Utilities
@@ -38,9 +38,9 @@ fn build_block_at_index(index: ChunkIndex) -> Transform {
 fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<Transform> {
     let mut blocks = Vec::new();
 
-    for x in 0..16 {
-        for y in 0..16 {
-            for z in 0..16 {
+    for x in 0..CHUNK_SIZE {
+        for y in 0..CHUNK_SIZE {
+            for z in 0..CHUNK_SIZE {
                 let index = ChunkIndex::new(x, y, z);
 
                 if chunk.get_block(index).is_some() {
