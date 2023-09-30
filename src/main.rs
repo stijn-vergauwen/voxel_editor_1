@@ -1,9 +1,11 @@
 mod camera;
+mod color_library;
 mod world;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
+use color_library::ColorLibraryPlugin;
 use world::WorldPlugin;
 
 /* Standards to hold myself to this project:
@@ -32,7 +34,7 @@ use world::WorldPlugin;
 
 */
 
-// TODO: make color library to store all available colors
+// TODO: make color library to store all available colors <- doing
 
 fn main() {
     App::new()
@@ -42,6 +44,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
             EditorCameraPlugin,
             WorldPlugin,
+            ColorLibraryPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)
