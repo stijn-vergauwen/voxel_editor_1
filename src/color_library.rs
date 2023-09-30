@@ -1,15 +1,21 @@
+mod selector;
+
 use bevy::prelude::*;
+
+use self::selector::ColorSelectorPlugin;
 
 pub struct ColorLibraryPlugin;
 
 impl Plugin for ColorLibraryPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(ColorLibrary::with_default_colors());
+        app.add_plugins(ColorSelectorPlugin)
+            .insert_resource(ColorLibrary::with_default_colors());
     }
 }
 
 #[derive(Resource)]
 pub struct ColorLibrary {
+    // TODO: replace with index pointing to colors array (init at 0)
     selected_color: Option<Color>,
     colors: Vec<Color>,
 }
@@ -53,8 +59,6 @@ impl ColorLibrary {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // TODO: Deselect color
 
     #[test]
     fn can_get_colors_count() {
