@@ -8,7 +8,7 @@ use bevy::prelude::*;
 
 use self::{
     builder::WorldBuilderPlugin, chunk::Chunk, coordinates::ChunkIndex,
-    interaction::WorldInteractionPlugin,
+    interaction::WorldInteractionPlugin, block::Block,
 };
 
 pub struct WorldPlugin;
@@ -21,7 +21,6 @@ impl Plugin for WorldPlugin {
 
 const CHUNK_SIZE: usize = 16;
 
-// TODO: replace voxel ids array with blocks array, store it as block structs instead of ids. (don't optimize prematurely)
 // TODO: block size should be adjustable
 // TODO: event for when a chunk needs to update
 // TODO:
@@ -29,13 +28,13 @@ const CHUNK_SIZE: usize = 16;
 // Utilities
 
 // TODO: These transform returns don't make sense, replace with index to position utils
-fn build_block_at_index(index: ChunkIndex) -> Transform {
+fn build_block_at_index(index: ChunkIndex, block: Block) -> (Block, Transform)  {
     let position = Vec3::new(index.x as f32, index.y as f32, index.z as f32);
 
-    Transform::from_translation(position)
+    (block, Transform::from_translation(position))
 }
 
-fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<Transform> {
+fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<(Block, Transform)> {
     let mut blocks = Vec::new();
 
     for x in 0..CHUNK_SIZE {
@@ -43,8 +42,8 @@ fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<Transform> {
             for z in 0..CHUNK_SIZE {
                 let index = ChunkIndex::new(x, y, z);
 
-                if chunk.get_block(index).is_some() {
-                    blocks.push(build_block_at_index(index));
+                if let Some(block) = chunk.get_block(index) {
+                    blocks.push(build_block_at_index(index, block));
                 }
             }
         }

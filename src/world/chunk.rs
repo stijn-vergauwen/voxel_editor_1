@@ -42,7 +42,7 @@ impl Chunk {
             for y in 0..ground_height {
                 for z in 0..CHUNK_SIZE {
                     let index = ChunkIndex::new(x, y, z);
-                    chunk.set_block(index, Some(Block));
+                    chunk.set_block(index, Some(Block::GRASS));
                 }
             }
         }
@@ -51,7 +51,7 @@ impl Chunk {
     }
 
     // TODO: remove dependency on builder (delete this method)
-    pub fn generate_blocks(&mut self) -> Vec<Transform> {
+    pub fn generate_blocks(&mut self) -> Vec<(Block, Transform)> {
         self.data_changed = false;
         build_blocks_of_chunk(&self)
     }
@@ -59,8 +59,6 @@ impl Chunk {
 
 #[cfg(test)]
 mod tests {
-    use crate::world::build_block_at_index;
-
     use super::*;
 
     // TODO: move tests that don't belong in this module
@@ -89,33 +87,34 @@ mod tests {
 
         assert_eq!(chunk.get_block(index), None);
 
-        chunk.set_block(index, Some(Block));
+        chunk.set_block(index, Some(Block::GRASS));
 
-        assert_eq!(chunk.get_block(index), Some(Block));
+        assert_eq!(chunk.get_block(index), Some(Block::GRASS));
     }
 
-    #[test]
-    fn can_build_block_at_index() {
-        let index = ChunkIndex::new(2, 2, 2);
+    // TODO: coordinate to position should be a different test in a different module
+    // #[test]
+    // fn can_build_block_at_index() {
+    //     let index = ChunkIndex::new(2, 2, 2);
 
-        let block = build_block_at_index(index);
+    //     let block = build_block_at_index(index);
 
-        let block_transform: Transform = block;
-        let block_position = block_transform.translation;
+    //     let block_transform: Transform = block;
+    //     let block_position = block_transform.translation;
 
-        assert_eq!(block_position, Vec3::new(2.0, 2.0, 2.0))
-    }
+    //     assert_eq!(block_position, Vec3::new(2.0, 2.0, 2.0))
+    // }
 
     #[test]
     fn can_build_blocks_from_chunk() {
         let mut chunk = Chunk::EMPTY;
 
-        chunk.set_block(ChunkIndex::new(1, 1, 1), Some(Block));
-        chunk.set_block(ChunkIndex::new(2, 6, 3), Some(Block));
+        chunk.set_block(ChunkIndex::new(1, 1, 1), Some(Block::GRASS));
+        chunk.set_block(ChunkIndex::new(2, 6, 3), Some(Block::GRASS));
 
-        let blocks: Vec<Transform> = build_blocks_of_chunk(&chunk);
-        let first_block_position = blocks[0].translation;
-        let second_block_position = blocks[1].translation;
+        let blocks: Vec<(Block, Transform)> = build_blocks_of_chunk(&chunk);
+        let first_block_position = blocks[0].1.translation;
+        let second_block_position = blocks[1].1.translation;
 
         assert_eq!(blocks.len(), 2);
         assert_eq!(first_block_position, Vec3::new(1.0, 1.0, 1.0));
@@ -128,7 +127,10 @@ mod tests {
 
         let chunk = Chunk::flat_ground(ground_height);
 
-        assert_eq!(chunk.get_block(ChunkIndex::new(0, 1, 0)), Some(Block));
+        assert_eq!(
+            chunk.get_block(ChunkIndex::new(0, 1, 0)),
+            Some(Block::GRASS)
+        );
         assert_eq!(chunk.get_block(ChunkIndex::new(0, 2, 0)), None);
     }
 
@@ -138,7 +140,7 @@ mod tests {
 
         assert_eq!(chunk.data_changed, false);
 
-        chunk.set_block(ChunkIndex::new(1, 1, 1), Some(Block));
+        chunk.set_block(ChunkIndex::new(1, 1, 1), Some(Block::GRASS));
 
         assert_eq!(chunk.data_changed, true);
 

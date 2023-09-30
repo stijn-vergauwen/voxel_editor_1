@@ -57,7 +57,7 @@ fn send_build_event(
                     )));
                 } else {
                     place_event.send(PlaceBlockRequest::new(
-                        Some(Block),
+                        Some(Block::GRASS),
                         ChunkIndex::from(target.out_position),
                     ));
                 }

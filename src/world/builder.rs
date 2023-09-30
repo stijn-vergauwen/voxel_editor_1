@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::chunk::Chunk;
+use super::{chunk::Chunk, block::Block};
 
 pub struct WorldBuilderPlugin;
 
@@ -35,13 +35,8 @@ fn redraw_changed_chunks(
 
         // Spawn blocks
         let mesh_handle = meshes.add(shape::Cube::new(0.9).into());
-        let material_handle = materials.add(StandardMaterial {
-            base_color: Color::LIME_GREEN,
-            ..default()
-        });
 
-        let block_entities =
-            spawn_chunk_blocks(&mut commands, blocks, mesh_handle, material_handle);
+        let block_entities = spawn_chunk_blocks(&mut commands, blocks, mesh_handle, &mut materials);
 
         commands.entity(chunk_entity).push_children(&block_entities);
     }
@@ -49,19 +44,24 @@ fn redraw_changed_chunks(
 
 fn spawn_chunk_blocks(
     commands: &mut Commands,
-    blocks: Vec<Transform>,
+    blocks: Vec<(Block, Transform)>,
     mesh_handle: Handle<Mesh>,
-    material_handle: Handle<StandardMaterial>,
+    materials: &mut Assets<StandardMaterial>,
 ) -> Vec<Entity> {
     let mut spawned_entities = Vec::new();
 
-    for block in blocks.iter() {
+    for (block, transform) in blocks.iter() {
+        let material_handle = materials.add(StandardMaterial {
+            base_color: block.color,
+            ..default()
+        });
+
         let id = commands
             .spawn((
                 PbrBundle {
                     mesh: mesh_handle.clone(),
                     material: material_handle.clone(),
-                    transform: *block,
+                    transform: *transform,
                     ..default()
                 },
                 Collider::cuboid(0.5, 0.5, 0.5),
