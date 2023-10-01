@@ -44,6 +44,7 @@ impl Default for CameraInteraction {
     }
 }
 
+#[derive(Clone, Copy)]
 struct TargetBlock {
     // block_entity: Entity,
     normal: Vec3,
