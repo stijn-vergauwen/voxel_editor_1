@@ -50,21 +50,31 @@ impl ColorLibrary {
         self.colors.get(self.selected_index).cloned()
     }
 
+    pub fn select_index(&mut self, index: usize) {
+        if index >= self.count() {
+            return;
+        }
+
+        self.selected_index = index;
+        println!("Color with index {} selected", index);
+    }
+
     pub fn select_color(&mut self, color: Color) -> bool {
-        let found_index = self
-            .colors
-            .iter()
-            .position(|color_item| *color_item == color);
+        let found_index = self.get_index_of_color(color);
 
         if let Some(index) = found_index {
-            self.selected_index = index;
+            self.select_index(index)
         }
 
         found_index.is_some()
     }
 
     pub fn select_next(&mut self) {
-        self.selected_index = (self.selected_index + 1) % self.count();
+        self.select_index((self.selected_index + 1) % self.count());
+    }
+
+    fn get_index_of_color(&self, color: Color) -> Option<usize> {
+        self.colors.iter().position(|e| *e == color)
     }
 }
 
