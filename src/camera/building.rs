@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use flying_camera::FlyingCamera;
 
-use crate::world::{coordinates::ChunkIndex, block::Block};
+use crate::{
+    color_library::ColorLibrary,
+    world::{block::Block, coordinates::ChunkIndex},
+};
 
 use super::CameraInteraction;
 
@@ -47,6 +50,7 @@ fn send_build_event(
     cameras: Query<(&CameraInteraction, &FlyingCamera)>,
     mouse_input: Res<Input<MouseButton>>,
     key_input: Res<Input<KeyCode>>,
+    color_library: Res<ColorLibrary>,
 ) {
     if let Ok((camera_interaction, camera)) = cameras.get_single() {
         if let Some(target) = &camera_interaction.target {
@@ -57,7 +61,9 @@ fn send_build_event(
                     )));
                 } else {
                     place_event.send(PlaceBlockRequest::new(
-                        Some(Block::GRASS),
+                        color_library
+                            .selected_color()
+                            .map(|color| Block::new(color)),
                         ChunkIndex::from(target.out_position),
                     ));
                 }

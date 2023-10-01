@@ -9,4 +9,8 @@ impl Block {
     pub const GRASS: Self = Self {
         color: Color::LIME_GREEN,
     };
+
+    pub fn new(color: Color) -> Self {
+        Self { color }
+    }
 }
