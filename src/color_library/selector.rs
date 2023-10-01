@@ -7,12 +7,13 @@ pub struct ColorSelectorPlugin;
 impl Plugin for ColorSelectorPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_selector_buttons)
-            .add_systems(Update, select_next_color_on_key);
+            .add_systems(Update, (select_next_color_on_key, button_interaction));
     }
 }
 
 const NEXT_COLOR_KEY: KeyCode = KeyCode::Period;
 
+#[derive(Component, Clone, Copy)]
 struct SelectorButton {
     color: Color,
 }
@@ -22,27 +23,29 @@ impl SelectorButton {
         Self { color }
     }
 
-    fn to_ui(&self) -> NodeBundle {
-        NodeBundle {
-            background_color: self.color.into(),
-            style: Style {
-                width: Val::Px(20.0),
-                height: Val::Px(20.0),
+    fn to_ui(&self) -> (ButtonBundle, SelectorButton) {
+        (
+            ButtonBundle {
+                background_color: self.color.into(),
+                style: Style {
+                    width: Val::Px(20.0),
+                    height: Val::Px(20.0),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        }
+            self.clone(),
+        )
+    }
+
+    fn set_selected(&self, library: &mut ColorLibrary) {
+        library.select_color(self.color);
     }
 }
 
 fn select_next_color_on_key(input: Res<Input<KeyCode>>, mut color_library: ResMut<ColorLibrary>) {
     if input.just_pressed(NEXT_COLOR_KEY) {
         color_library.select_next();
-
-        println!(
-            "Color '{:?}' is now selected.",
-            color_library.selected_color()
-        );
     }
 }
 
@@ -68,11 +71,21 @@ fn spawn_selector_buttons(mut commands: Commands, color_library: Res<ColorLibrar
         });
 }
 
+fn button_interaction(
+    buttons: Query<(&SelectorButton, &Interaction), Changed<Interaction>>,
+    mut color_library: ResMut<ColorLibrary>,
+) {
+    for (button, interaction) in buttons.iter() {
+        if *interaction == Interaction::Pressed {
+            button.set_selected(&mut color_library);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // TODO: clicking on button selects that color
     // TODO: highlight button that has selected color
     // TODO: selecting new color highlights that button
     // TODO:
@@ -88,8 +101,23 @@ mod tests {
     fn can_build_ui_node_from_selector_button() {
         let selector = SelectorButton::new(Color::GREEN);
 
-        let node: NodeBundle = selector.to_ui();
+        let node: (ButtonBundle, SelectorButton) = selector.to_ui();
 
-        assert_eq!(node.background_color.0, Color::GREEN);
+        assert_eq!(node.0.background_color.0, Color::GREEN);
+    }
+
+    #[test]
+    fn clicking_button_selects_that_color() {
+        let mut library = ColorLibrary::empty();
+        library.add_color(Color::RED);
+        library.add_color(Color::GREEN);
+
+        let selector = SelectorButton::new(Color::GREEN);
+
+        assert_eq!(library.selected_color(), Some(Color::RED));
+
+        selector.set_selected(&mut library);
+
+        assert_eq!(library.selected_color(), Some(Color::GREEN));
     }
 }
