@@ -15,8 +15,7 @@ impl Plugin for ColorLibraryPlugin {
 
 #[derive(Resource)]
 pub struct ColorLibrary {
-    // TODO: replace with index pointing to colors array (init at 0)
-    selected_color: Option<Color>,
+    selected_index: usize,
     colors: Vec<Color>,
 }
 
@@ -24,14 +23,14 @@ impl ColorLibrary {
     pub fn empty() -> Self {
         Self {
             colors: Vec::new(),
-            selected_color: None,
+            selected_index: 0,
         }
     }
 
     pub fn with_default_colors() -> Self {
         Self {
             colors: vec![Color::LIME_GREEN, Color::CYAN, Color::GRAY],
-            selected_color: None,
+            selected_index: 0,
         }
     }
 
@@ -48,11 +47,24 @@ impl ColorLibrary {
     }
 
     pub fn selected_color(&self) -> Option<Color> {
-        self.selected_color
+        self.colors.get(self.selected_index).cloned()
     }
 
-    pub fn select_color(&mut self, color: Color) {
-        self.selected_color = Some(color);
+    pub fn select_color(&mut self, color: Color) -> bool {
+        let found_index = self
+            .colors
+            .iter()
+            .position(|color_item| *color_item == color);
+
+        if let Some(index) = found_index {
+            self.selected_index = index;
+        }
+
+        found_index.is_some()
+    }
+
+    pub fn select_next(&mut self) {
+        self.selected_index = (self.selected_index + 1) % self.count();
     }
 }
 
@@ -122,5 +134,47 @@ mod tests {
         let selected_color = library.selected_color();
 
         assert_eq!(selected_color, Some(Color::MAROON));
+    }
+
+    #[test]
+    fn can_select_next_color() {
+        let mut library = create_rgb_library();
+        library.select_color(Color::RED);
+
+        let first_color = library.selected_color();
+
+        library.select_next();
+
+        let next_color = library.selected_color();
+
+        assert_eq!(first_color, Some(Color::RED));
+        assert_eq!(next_color, Some(Color::GREEN));
+    }
+
+    #[test]
+    fn can_loop_back_to_first_color() {
+        let mut library = create_rgb_library();
+        library.select_color(Color::GREEN);
+
+        library.select_next();
+
+        let next_color = library.selected_color();
+
+        library.select_next();
+
+        let looped_to_first = library.selected_color();
+
+        assert_eq!(next_color, Some(Color::BLUE));
+        assert_eq!(looped_to_first, Some(Color::RED));
+    }
+
+    fn create_rgb_library() -> ColorLibrary {
+        let mut library = ColorLibrary::empty();
+
+        library.add_color(Color::RED);
+        library.add_color(Color::GREEN);
+        library.add_color(Color::BLUE);
+
+        library
     }
 }
