@@ -2,14 +2,15 @@ mod selector;
 
 use bevy::prelude::*;
 
-use self::selector::ColorSelectorPlugin;
+use self::selector::{ColorSelectorPlugin, OnColorClicked};
 
 pub struct ColorLibraryPlugin;
 
 impl Plugin for ColorLibraryPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(ColorSelectorPlugin)
-            .insert_resource(ColorLibrary::with_default_colors());
+            .insert_resource(ColorLibrary::with_default_colors())
+            .add_systems(Update, handle_color_clicked_events);
     }
 }
 
@@ -75,6 +76,15 @@ impl ColorLibrary {
 
     fn get_index_of_color(&self, color: Color) -> Option<usize> {
         self.colors.iter().position(|e| *e == color)
+    }
+}
+
+fn handle_color_clicked_events(
+    mut on_clicked: EventReader<OnColorClicked>,
+    mut color_library: ResMut<ColorLibrary>,
+) {
+    for event in on_clicked.iter() {
+        color_library.select_color(event.color);
     }
 }
 
