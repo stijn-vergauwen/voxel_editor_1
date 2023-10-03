@@ -8,7 +8,14 @@ impl Plugin for ColorSelectorPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnColorClicked>()
             .add_systems(Startup, spawn_selector_buttons)
-            .add_systems(Update, (select_next_color_on_key, button_interaction));
+            .add_systems(
+                Update,
+                (
+                    select_next_color_on_key,
+                    button_interaction,
+                    update_highlighted_ui,
+                ),
+            );
     }
 }
 
@@ -103,6 +110,22 @@ fn button_interaction(
     }
 }
 
+fn update_highlighted_ui(
+    mut buttons: Query<(&mut SelectorButton, &mut BorderColor)>,
+    on_clicked: EventReader<OnColorClicked>,
+    color_library: Res<ColorLibrary>,
+) {
+    if !on_clicked.is_empty() {
+        let buttons_to_update = buttons.iter_mut().filter(|(button, _)| {
+            button.is_highlighted != check_if_selected(button, color_library.selected_color())
+        });
+
+        for (mut button, mut border) in buttons_to_update {
+            button.is_highlighted = check_if_selected(&button, color_library.selected_color());
+            border.0 = button.border_color();
+        }
+    }
+}
 
 fn build_buttons_from_colors(colors: Vec<Color>) -> Vec<SelectorButton> {
     colors
@@ -118,10 +141,14 @@ fn build_buttons_ui(
     buttons
         .into_iter()
         .map(|mut button| {
-            button.is_highlighted = Some(button.color) == selected_color;
+            button.is_highlighted = check_if_selected(&button, selected_color);
             button.to_ui()
         })
         .collect()
+}
+
+fn check_if_selected(button: &SelectorButton, selected_color: Option<Color>) -> bool {
+    Some(button.color) == selected_color
 }
 
 #[cfg(test)]

@@ -20,6 +20,7 @@ pub struct ColorLibrary {
     colors: Vec<Color>,
 }
 
+#[allow(unused)]
 impl ColorLibrary {
     pub fn empty() -> Self {
         Self {
