@@ -1,11 +1,13 @@
 mod camera;
 mod color_library;
 mod world;
+mod scene_loader;
 
 use bevy::{prelude::*, window};
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
 use color_library::ColorLibraryPlugin;
+use scene_loader::SceneLoaderPlugin;
 use world::WorldPlugin;
 
 /* Standards to hold myself to this project:
@@ -43,6 +45,7 @@ fn main() {
             EditorCameraPlugin,
             WorldPlugin,
             ColorLibraryPlugin,
+            SceneLoaderPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)
