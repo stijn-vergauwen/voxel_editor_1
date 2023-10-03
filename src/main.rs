@@ -34,8 +34,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: make color library to store all available colors <- doing
-
 fn main() {
     App::new()
         .add_plugins((

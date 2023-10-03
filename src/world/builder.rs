@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::{chunk::Chunk, block::Block};
+use super::{block::Block, chunk::Chunk};
 
 pub struct WorldBuilderPlugin;
 
@@ -25,8 +25,6 @@ fn redraw_changed_chunks(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for (mut chunk, chunk_entity) in chunks.iter_mut().filter(|(chunk, _)| chunk.data_changed) {
-        println!("Redraw chunk");
-
         // Remove blocks
         commands.entity(chunk_entity).despawn_descendants();
 

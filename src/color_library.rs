@@ -58,7 +58,6 @@ impl ColorLibrary {
         }
 
         self.selected_index = index;
-        println!("Color with index {} selected", index);
     }
 
     pub fn select_color(&mut self, color: Color) -> bool {

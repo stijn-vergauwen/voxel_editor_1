@@ -41,8 +41,8 @@ impl SelectorButton {
                 background_color: self.color.into(),
                 border_color: self.border_color().into(),
                 style: Style {
-                    width: Val::Px(20.0),
-                    height: Val::Px(20.0),
+                    width: Val::Px(40.0),
+                    height: Val::Px(40.0),
                     border: UiRect::all(Val::Px(2.0)),
                     ..default()
                 },
@@ -154,9 +154,6 @@ fn check_if_selected(button: &SelectorButton, selected_color: Option<Color>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // TODO: selecting new color highlights that button <- doing
-    // TODO:
 
     #[test]
     fn can_create_selector_button() {
