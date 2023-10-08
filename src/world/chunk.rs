@@ -2,7 +2,8 @@ use bevy::prelude::*;
 
 use super::{block::Block, build_blocks_of_chunk, coordinates::ChunkIndex, CHUNK_SIZE};
 
-#[derive(Component)]
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
 pub struct Chunk {
     blocks: [[[Option<Block>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
     pub data_changed: bool,

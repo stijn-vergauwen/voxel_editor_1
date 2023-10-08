@@ -6,7 +6,9 @@ pub struct SceneLoaderPlugin;
 
 impl Plugin for SceneLoaderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, save_test_scene);
+        app.register_type::<ComponentA>()
+            .register_type::<ResourceA>()
+            .add_systems(Startup, save_test_scene);
     }
 }
 
@@ -23,45 +25,53 @@ struct ResourceA {
     pub score: u32,
 }
 
+impl ResourceA {
+    fn new(score: u32) -> Self {
+        Self { score }
+    }
+}
+
 const SCENE_FILE_PATH: &str = "scenes/test_scene.scn.ron";
 
 fn save_test_scene(world: &mut World) {
-    // Scenes can be created from any ECS World.
-    // You can either create a new one for the scene or use the current World.
-    // For demonstration purposes, we'll create a new one.
-    let mut scene_world = World::new();
-
-    // The `TypeRegistry` resource contains information about all registered types (including components).
-    // This is used to construct scenes, so we'll want to ensure that our previous type registrations
-    // exist in this new scene world as well.
-    // To do this, we can simply clone the `AppTypeRegistry` resource.
-    let type_registry = world.resource::<AppTypeRegistry>().clone();
-    scene_world.insert_resource(type_registry);
+    let mut scene_world = create_empty_world(clone_type_registry(&world));
 
     scene_world.spawn((ComponentA { x: 1.0, y: 2.0 }, Transform::IDENTITY));
     scene_world.spawn(ComponentA { x: 3.0, y: 4.0 });
-    scene_world.insert_resource(ResourceA { score: 1 });
+    scene_world.insert_resource(ResourceA::new(3));
 
-    // With our sample world ready to go, we can now create our scene:
-    let scene = DynamicScene::from_world(&scene_world);
+    save_world_data(String::from(SCENE_FILE_PATH), world);
+}
 
-    // Scenes can be serialized like this:
+fn create_empty_world(type_registry: AppTypeRegistry) -> World {
+    let mut world = World::new();
+    world.insert_resource(type_registry);
+    world
+}
+
+fn clone_type_registry(world: &World) -> AppTypeRegistry {
+    world.resource::<AppTypeRegistry>().clone()
+}
+
+fn serialize_world_data(world: &World) -> Option<String> {
+    let scene = DynamicScene::from_world(&world);
     let type_registry = world.resource::<AppTypeRegistry>();
-    let serialized_scene = scene.serialize_ron(type_registry).unwrap();
 
-    // Showing the scene in the console
-    info!("{}", serialized_scene);
+    scene.serialize_ron(type_registry).ok()
+}
 
-    // Writing the scene to a new file. Using a task to avoid calling the filesystem APIs in a system
-    // as they are blocking
-    // This can't work in WASM as there is no filesystem access
-    #[cfg(not(target_arch = "wasm32"))]
+fn write_data_to_file(file_path: String, serialized_data: String) {
     IoTaskPool::get()
         .spawn(async move {
-            // Write the scene RON data to file
-            File::create(format!("assets/{}", SCENE_FILE_PATH))
-                .and_then(|mut file| file.write(serialized_scene.as_bytes()))
+            File::create(format!("assets/{}", file_path))
+                .and_then(|mut file| file.write(serialized_data.as_bytes()))
                 .expect("Error while writing scene to file");
         })
         .detach();
+}
+
+fn save_world_data(file_path: String, world: &World) {
+    if let Some(serialized_data) = serialize_world_data(world) {
+        write_data_to_file(file_path, serialized_data);
+    }
 }
