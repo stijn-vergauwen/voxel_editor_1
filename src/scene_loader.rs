@@ -2,45 +2,35 @@ use std::{fs::File, io::Write};
 
 use bevy::{prelude::*, tasks::IoTaskPool};
 
+use crate::world::chunk::Chunk;
+
 pub struct SceneLoaderPlugin;
 
 impl Plugin for SceneLoaderPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<ComponentA>()
-            .register_type::<ResourceA>()
-            .add_systems(Startup, save_test_scene);
-    }
-}
-
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)] // this tells the reflect derive to also reflect component behaviors
-struct ComponentA {
-    pub x: f32,
-    pub y: f32,
-}
-
-#[derive(Resource, Reflect, Default)]
-#[reflect(Resource)]
-struct ResourceA {
-    pub score: u32,
-}
-
-impl ResourceA {
-    fn new(score: u32) -> Self {
-        Self { score }
+        app.add_systems(Update, save_test_scene_on_keypress);
     }
 }
 
 const SCENE_FILE_PATH: &str = "scenes/test_scene.scn.ron";
 
-fn save_test_scene(world: &mut World) {
+fn save_test_scene_on_keypress(world: &mut World) {
+    if !world.resource::<Input<KeyCode>>().just_pressed(KeyCode::S) {
+        return;
+    }
+
     let mut scene_world = create_empty_world(clone_type_registry(&world));
 
-    scene_world.spawn((ComponentA { x: 1.0, y: 2.0 }, Transform::IDENTITY));
-    scene_world.spawn(ComponentA { x: 3.0, y: 4.0 });
-    scene_world.insert_resource(ResourceA::new(3));
+    for chunk in world.query::<&Chunk>().iter(world) {
+        scene_world.spawn(*chunk);
+    }
 
-    save_world_data(String::from(SCENE_FILE_PATH), world);
+    println!(
+        "test scene has {} entities",
+        scene_world.entities().total_count()
+    );
+
+    save_world_data(String::from(SCENE_FILE_PATH), &scene_world);
 }
 
 fn create_empty_world(type_registry: AppTypeRegistry) -> World {
