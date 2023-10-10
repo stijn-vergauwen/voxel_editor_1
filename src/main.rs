@@ -4,6 +4,7 @@ mod world;
 mod scene_loader;
 
 use bevy::{prelude::*, window};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
 use color_library::ColorLibraryPlugin;
@@ -42,6 +43,7 @@ fn main() {
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default(),
+            WorldInspectorPlugin::new(),
             EditorCameraPlugin,
             WorldPlugin,
             ColorLibraryPlugin,
