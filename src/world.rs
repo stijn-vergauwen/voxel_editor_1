@@ -15,15 +15,28 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Chunk>()
+        app.insert_resource(WorldSettings::new(16, 1.0))
+            .register_type::<Chunk>()
             .register_type::<Block>()
             .add_plugins((WorldInteractionPlugin, WorldBuilderPlugin));
     }
 }
 
-const CHUNK_SIZE: usize = 16;
+#[derive(Resource, Debug)]
+pub struct WorldSettings {
+    pub chunk_size: usize,
+    pub block_scale: f32,
+}
 
-// TODO: worldSettings resource
+impl WorldSettings {
+    pub fn new(chunk_size: usize, block_scale: f32) -> Self {
+        Self {
+            chunk_size,
+            block_scale,
+        }
+    }
+}
+
 // TODO: block size should be adjustable
 // TODO: coordinate to position helper functions
 // TODO: event for when a chunk needs to update
@@ -40,9 +53,9 @@ fn build_block_at_coordinate(coord: Coordinate, block: Block) -> (Block, Transfo
 fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<(Block, Transform)> {
     let mut blocks = Vec::new();
 
-    for x in 0..CHUNK_SIZE {
-        for y in 0..CHUNK_SIZE {
-            for z in 0..CHUNK_SIZE {
+    for x in 0..chunk.size() {
+        for y in 0..chunk.size() {
+            for z in 0..chunk.size() {
                 let coord = Coordinate::new(x, y, z);
 
                 if let Some(block) = chunk.get_block(coord) {

@@ -40,7 +40,7 @@ fn save_test_scene(world: &mut World) {
     let mut scene_world = create_empty_world(clone_type_registry(&world));
 
     for chunk in world.query::<&Chunk>().iter(world) {
-        scene_world.spawn(*chunk);
+        scene_world.spawn(chunk.clone());
     }
 
     save_world_data(String::from(SCENE_FILE_PATH), &scene_world);
@@ -48,7 +48,7 @@ fn save_test_scene(world: &mut World) {
 
 fn load_test_scene(commands: &mut Commands, asset_server: &AssetServer, chunk_entity: Entity) {
     // TODO: how do I transform a dynamic scene handle to chunk data? do I need to wrap the original chunk in a dynamic scene too?
-    
+
     let loaded_chunk: Handle<DynamicScene> = asset_server.load(SCENE_FILE_PATH);
     println!("{:#?}", loaded_chunk);
 
@@ -56,7 +56,7 @@ fn load_test_scene(commands: &mut Commands, asset_server: &AssetServer, chunk_en
 
     // I'm getting the message "SceneInstance is not registered in the TypeRegistry" when opening SceneInstance in bevy inspector.
     // One thing to try out: make a separate struct ChunkData to represent the data in a way that's easier to serialize (flat array instead of nested array). Then switch between these
-    
+
     // TODO: find out how to load a dynamic scene.
     commands.spawn(DynamicSceneBundle {
         scene: loaded_chunk,

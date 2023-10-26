@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::{block::Block, build_blocks_of_chunk, chunk::Chunk};
+use super::{block::Block, build_blocks_of_chunk, chunk::Chunk, WorldSettings};
 
 pub struct WorldBuilderPlugin;
 
@@ -12,13 +12,13 @@ impl Plugin for WorldBuilderPlugin {
     }
 }
 
-fn spawn_chunk(mut commands: Commands) {
+fn spawn_chunk(mut commands: Commands, world_settings: Res<WorldSettings>) {
     let ground_height = 2;
 
     commands.spawn((
         Name::new("Chunk"),
         SpatialBundle::default(),
-        Chunk::flat_ground(ground_height, Color::LIME_GREEN),
+        Chunk::flat_ground(ground_height, Color::LIME_GREEN, world_settings.chunk_size),
     ));
 }
 
@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn can_build_blocks_from_chunk() {
-        let mut chunk = Chunk::EMPTY;
+        let mut chunk = Chunk::empty(8);
 
         chunk.set_block(Coordinate::new(1, 1, 1), Some(Block::new(Color::WHITE)));
         chunk.set_block(Coordinate::new(2, 6, 3), Some(Block::new(Color::WHITE)));
