@@ -16,6 +16,7 @@ fn spawn_chunk(mut commands: Commands) {
     let ground_height = 2;
 
     commands.spawn((
+        Name::new("Chunk"),
         SpatialBundle::default(),
         Chunk::flat_ground(ground_height, Color::LIME_GREEN),
     ));
@@ -28,6 +29,7 @@ fn redraw_changed_chunks(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for (mut chunk, chunk_entity) in chunks.iter_mut().filter(|(chunk, _)| chunk.data_changed) {
+        // TODO: split calculations to function
         // Remove blocks
         commands.entity(chunk_entity).despawn_descendants();
 

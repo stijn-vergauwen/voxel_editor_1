@@ -1,7 +1,7 @@
 mod camera;
 mod color_library;
-mod world;
 mod scene_loader;
+mod world;
 
 use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -11,12 +11,11 @@ use color_library::ColorLibraryPlugin;
 use scene_loader::SceneLoaderPlugin;
 use world::WorldPlugin;
 
-/* Standards to hold myself to this project:
+/* Standards to work towards in this project:
 
     - Build this project using TDD. Write tests first, then functionality.
-    - System functions should only pass data, decouple querying from calculations.
+    - System functions should mainly pass data, decouple querying from calculations.
     - Use events for everything that doesn't happen every frame. (interactions etc.)
-    - Build newtypes whenever this would describe data better.
 
 */
 
@@ -55,17 +54,20 @@ fn main() {
 }
 
 fn spawn_light(mut commands: Commands) {
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            shadows_enabled: true,
-            illuminance: 10_000.0,
+    commands.spawn((
+        Name::new("Directional light"),
+        DirectionalLightBundle {
+            directional_light: DirectionalLight {
+                shadows_enabled: true,
+                illuminance: 10_000.0,
+                ..default()
+            },
+            transform: Transform {
+                translation: Vec3::new(0.0, 20.0, 0.0),
+                rotation: Quat::from_rotation_x(-45f32.to_radians()),
+                ..default()
+            },
             ..default()
         },
-        transform: Transform {
-            translation: Vec3::new(0.0, 20.0, 0.0),
-            rotation: Quat::from_rotation_x(-45f32.to_radians()),
-            ..default()
-        },
-        ..default()
-    });
+    ));
 }

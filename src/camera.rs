@@ -71,6 +71,7 @@ impl TargetBlock {
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
+        Name::new("Camera"),
         Camera3dBundle {
             transform: Transform::from_xyz(-6.0, 6.0, 12.0),
             ..Default::default()

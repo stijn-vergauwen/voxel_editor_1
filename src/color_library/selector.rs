@@ -2,14 +2,15 @@ pub mod interaction;
 
 use bevy::prelude::*;
 
-use self::interaction::OnColorClicked;
+use self::interaction::{OnColorClicked, SelectorInteractionPlugin};
 use super::ColorLibrary;
 
 pub struct ColorSelectorPlugin;
 
 impl Plugin for ColorSelectorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_selector_buttons)
+        app.add_plugins(SelectorInteractionPlugin)
+            .add_systems(Startup, spawn_selector_buttons)
             .add_systems(Update, update_highlighted_ui);
     }
 }
@@ -56,21 +57,24 @@ impl SelectorButton {
 
 fn spawn_selector_buttons(mut commands: Commands, color_library: Res<ColorLibrary>) {
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Px(0.0),
-                bottom: Val::Px(0.0),
-                padding: UiRect::all(Val::Px(10.0)),
-                column_gap: Val::Px(10.0),
+        .spawn((
+            Name::new("Selector buttons container"),
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(0.0),
+                    bottom: Val::Px(0.0),
+                    padding: UiRect::all(Val::Px(10.0)),
+                    column_gap: Val::Px(10.0),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        })
+        ))
         .with_children(|list| {
             let buttons = build_buttons_from_colors(color_library.all_colors());
             for node in build_buttons_ui(buttons, color_library.selected_color()) {
-                list.spawn(node);
+                list.spawn((Name::new("Selector button"), node));
             }
         });
 }
