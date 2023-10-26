@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::{block::Block, chunk::Chunk};
+use super::{block::Block, build_blocks_of_chunk, chunk::Chunk};
 
 pub struct WorldBuilderPlugin;
 
@@ -34,7 +34,8 @@ fn redraw_changed_chunks(
         commands.entity(chunk_entity).despawn_descendants();
 
         // Generate blocks
-        let blocks = chunk.generate_blocks();
+        let blocks = build_blocks_of_chunk(&chunk);
+        chunk.data_changed = false;
 
         // Spawn blocks
         let mesh_handle = meshes.add(shape::Cube::new(0.9).into());
@@ -75,4 +76,27 @@ fn spawn_chunk_blocks(
     }
 
     spawned_entities
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::world::coordinates::Coordinate;
+
+    use super::*;
+
+    #[test]
+    fn can_build_blocks_from_chunk() {
+        let mut chunk = Chunk::EMPTY;
+
+        chunk.set_block(Coordinate::new(1, 1, 1), Some(Block::new(Color::WHITE)));
+        chunk.set_block(Coordinate::new(2, 6, 3), Some(Block::new(Color::WHITE)));
+
+        let blocks: Vec<(Block, Transform)> = build_blocks_of_chunk(&chunk);
+        let first_block_position = blocks[0].1.translation;
+        let second_block_position = blocks[1].1.translation;
+
+        assert_eq!(blocks.len(), 2);
+        assert_eq!(first_block_position, Vec3::new(1.0, 1.0, 1.0));
+        assert_eq!(second_block_position, Vec3::new(2.0, 6.0, 3.0));
+    }
 }

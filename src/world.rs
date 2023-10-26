@@ -23,13 +23,14 @@ impl Plugin for WorldPlugin {
 
 const CHUNK_SIZE: usize = 16;
 
+// TODO: worldSettings resource
 // TODO: block size should be adjustable
+// TODO: coordinate to position helper functions
 // TODO: event for when a chunk needs to update
-// TODO:
 
 // Utilities
 
-// TODO: These transform returns don't make sense, replace with coord to position utils
+// TODO: These build functions don't make sense, replace with coord to position utils
 fn build_block_at_coordinate(coord: Coordinate, block: Block) -> (Block, Transform) {
     let position = Vec3::new(coord.x as f32, coord.y as f32, coord.z as f32);
 
