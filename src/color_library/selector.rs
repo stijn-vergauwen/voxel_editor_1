@@ -1,25 +1,18 @@
+pub mod interaction;
+
 use bevy::prelude::*;
 
+use self::interaction::OnColorClicked;
 use super::ColorLibrary;
 
 pub struct ColorSelectorPlugin;
 
 impl Plugin for ColorSelectorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnColorClicked>()
-            .add_systems(Startup, spawn_selector_buttons)
-            .add_systems(
-                Update,
-                (
-                    select_next_color_on_key,
-                    button_interaction,
-                    update_highlighted_ui,
-                ),
-            );
+        app.add_systems(Startup, spawn_selector_buttons)
+            .add_systems(Update, update_highlighted_ui);
     }
 }
-
-const NEXT_COLOR_KEY: KeyCode = KeyCode::Period;
 
 #[derive(Component, Clone, Copy)]
 struct SelectorButton {
@@ -61,23 +54,6 @@ impl SelectorButton {
     }
 }
 
-#[derive(Event)]
-pub struct OnColorClicked {
-    pub color: Color,
-}
-
-impl OnColorClicked {
-    pub fn new(color: Color) -> Self {
-        Self { color }
-    }
-}
-
-fn select_next_color_on_key(input: Res<Input<KeyCode>>, mut color_library: ResMut<ColorLibrary>) {
-    if input.just_pressed(NEXT_COLOR_KEY) {
-        color_library.select_next();
-    }
-}
-
 fn spawn_selector_buttons(mut commands: Commands, color_library: Res<ColorLibrary>) {
     commands
         .spawn(NodeBundle {
@@ -97,17 +73,6 @@ fn spawn_selector_buttons(mut commands: Commands, color_library: Res<ColorLibrar
                 list.spawn(node);
             }
         });
-}
-
-fn button_interaction(
-    buttons: Query<(&SelectorButton, &Interaction), Changed<Interaction>>,
-    mut on_clicked: EventWriter<OnColorClicked>,
-) {
-    for (button, interaction) in buttons.iter() {
-        if *interaction == Interaction::Pressed {
-            on_clicked.send(OnColorClicked::new(button.color));
-        }
-    }
 }
 
 fn update_highlighted_ui(
@@ -191,7 +156,6 @@ mod tests {
     fn can_set_button_highlighted() {
         let mut selector = SelectorButton::new(Color::GREEN);
 
-        // This test shows that highlighted should default to false, but does it provide any value?
         assert_eq!(selector.is_highlighted, false);
 
         selector.is_highlighted = true;

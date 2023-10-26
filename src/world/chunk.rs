@@ -64,8 +64,6 @@ mod tests {
 
     // TODO: move tests that don't belong in this module
 
-    // TODO: get block
-    // TODO: set block
     // TODO: change chunk size
     // TODO: get iterator over chunk
     // TODO: get iterator over solid blocks

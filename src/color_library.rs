@@ -2,7 +2,7 @@ mod selector;
 
 use bevy::prelude::*;
 
-use self::selector::{ColorSelectorPlugin, OnColorClicked};
+use self::selector::{interaction::OnColorClicked, ColorSelectorPlugin};
 
 pub struct ColorLibraryPlugin;
 
