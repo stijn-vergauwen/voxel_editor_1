@@ -84,6 +84,7 @@ fn update_highlighted_ui(
     on_clicked: EventReader<OnColorClicked>,
     color_library: Res<ColorLibrary>,
 ) {
+    // TODO: this function shouldn't rely on ColorLibrary, use value in OnColorClicked instead
     if !on_clicked.is_empty() {
         let buttons_to_update = buttons.iter_mut().filter(|(button, _)| {
             button.is_highlighted != check_if_selected(button, color_library.selected_color())

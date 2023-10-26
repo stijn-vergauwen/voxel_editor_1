@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::camera::building::{PlaceBlockRequest, RemoveBlockRequest};
+use crate::camera::building::{OnPlaceBlockRequest, OnRemoveBlockRequest};
 
 use crate::world::chunk::Chunk;
 
@@ -13,23 +13,23 @@ impl Plugin for WorldInteractionPlugin {
 }
 
 fn handle_place_request(
-    mut place_events: EventReader<PlaceBlockRequest>,
+    mut place_events: EventReader<OnPlaceBlockRequest>,
     mut chunks: Query<&mut Chunk>,
 ) {
     for event in place_events.iter() {
         for mut chunk in chunks.iter_mut() {
-            chunk.set_block(event.position, event.block);
+            chunk.set_block(event.coord, event.block);
         }
     }
 }
 
 fn handle_remove_request(
-    mut remove_events: EventReader<RemoveBlockRequest>,
+    mut remove_events: EventReader<OnRemoveBlockRequest>,
     mut chunks: Query<&mut Chunk>,
 ) {
     for event in remove_events.iter() {
         for mut chunk in chunks.iter_mut() {
-            chunk.set_block(event.position, None);
+            chunk.set_block(event.coord, None);
         }
     }
 }

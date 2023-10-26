@@ -61,7 +61,7 @@ impl ColorLibrary {
     }
 
     pub fn select_color(&mut self, color: Color) -> bool {
-        let found_index = self.get_index_of_color(color);
+        let found_index = self.find_index_of_color(color);
 
         if let Some(index) = found_index {
             self.select_index(index)
@@ -74,7 +74,7 @@ impl ColorLibrary {
         self.select_index((self.selected_index + 1) % self.count());
     }
 
-    fn get_index_of_color(&self, color: Color) -> Option<usize> {
+    fn find_index_of_color(&self, color: Color) -> Option<usize> {
         self.colors.iter().position(|e| *e == color)
     }
 }

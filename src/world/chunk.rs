@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{block::Block, build_blocks_of_chunk, coordinates::ChunkIndex, CHUNK_SIZE};
+use super::{block::Block, build_blocks_of_chunk, coordinates::Coordinate, CHUNK_SIZE};
 
 #[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 #[reflect(Component)]
@@ -15,25 +15,25 @@ impl Chunk {
         data_changed: false,
     };
 
-    pub fn get_block(&self, index: ChunkIndex) -> Option<Block> {
-        if self.outside_bounds(index) {
+    pub fn get_block(&self, coord: Coordinate) -> Option<Block> {
+        if self.outside_bounds(coord) {
             return None;
         }
 
-        self.blocks[index.x][index.y][index.z]
+        self.blocks[coord.x][coord.y][coord.z]
     }
 
-    pub fn set_block(&mut self, index: ChunkIndex, block: Option<Block>) {
-        if self.outside_bounds(index) {
+    pub fn set_block(&mut self, coord: Coordinate, block: Option<Block>) {
+        if self.outside_bounds(coord) {
             return;
         }
 
-        self.blocks[index.x][index.y][index.z] = block;
+        self.blocks[coord.x][coord.y][coord.z] = block;
         self.data_changed = true;
     }
 
-    fn outside_bounds(&self, index: ChunkIndex) -> bool {
-        index.max_element() >= self.blocks.len()
+    fn outside_bounds(&self, coord: Coordinate) -> bool {
+        coord.max_element() >= self.blocks.len()
     }
 
     pub fn flat_ground(ground_height: usize, color: Color) -> Self {
@@ -42,8 +42,8 @@ impl Chunk {
         for x in 0..CHUNK_SIZE {
             for y in 0..ground_height {
                 for z in 0..CHUNK_SIZE {
-                    let index = ChunkIndex::new(x, y, z);
-                    chunk.set_block(index, Some(Block::new(color)));
+                    let coord = Coordinate::new(x, y, z);
+                    chunk.set_block(coord, Some(Block::new(color)));
                 }
             }
         }
@@ -72,9 +72,9 @@ mod tests {
     #[test]
     fn can_get_block_id() {
         let chunk = Chunk::EMPTY;
-        let index = ChunkIndex::new(0, 0, 0);
+        let coord = Coordinate::new(0, 0, 0);
 
-        let block_id = chunk.get_block(index);
+        let block_id = chunk.get_block(coord);
 
         assert_eq!(block_id, None);
     }
@@ -82,19 +82,19 @@ mod tests {
     #[test]
     fn can_change_block_id() {
         let mut chunk = Chunk::EMPTY;
-        let index = ChunkIndex::new(0, 0, 0);
+        let coord = Coordinate::new(0, 0, 0);
 
-        assert_eq!(chunk.get_block(index), None);
+        assert_eq!(chunk.get_block(coord), None);
 
-        chunk.set_block(index, test_block());
+        chunk.set_block(coord, test_block());
 
-        assert_eq!(chunk.get_block(index), test_block());
+        assert_eq!(chunk.get_block(coord), test_block());
     }
 
     // TODO: coordinate to position should be a different test in a different module
     // #[test]
-    // fn can_build_block_at_index() {
-    //     let index = ChunkIndex::new(2, 2, 2);
+    // fn can_build_block_at_coord() {
+    //     let coord = ChunkIndex::new(2, 2, 2);
 
     //     let block = build_block_at_index(index);
 
@@ -108,8 +108,8 @@ mod tests {
     fn can_build_blocks_from_chunk() {
         let mut chunk = Chunk::EMPTY;
 
-        chunk.set_block(ChunkIndex::new(1, 1, 1), test_block());
-        chunk.set_block(ChunkIndex::new(2, 6, 3), test_block());
+        chunk.set_block(Coordinate::new(1, 1, 1), test_block());
+        chunk.set_block(Coordinate::new(2, 6, 3), test_block());
 
         let blocks: Vec<(Block, Transform)> = build_blocks_of_chunk(&chunk);
         let first_block_position = blocks[0].1.translation;
@@ -126,11 +126,8 @@ mod tests {
 
         let chunk = Chunk::flat_ground(ground_height, Color::WHITE);
 
-        assert_eq!(
-            chunk.get_block(ChunkIndex::new(0, 1, 0)),
-            test_block()
-        );
-        assert_eq!(chunk.get_block(ChunkIndex::new(0, 2, 0)), None);
+        assert_eq!(chunk.get_block(Coordinate::new(0, 1, 0)), test_block());
+        assert_eq!(chunk.get_block(Coordinate::new(0, 2, 0)), None);
     }
 
     #[test]
@@ -139,7 +136,7 @@ mod tests {
 
         assert_eq!(chunk.data_changed, false);
 
-        chunk.set_block(ChunkIndex::new(1, 1, 1), test_block());
+        chunk.set_block(Coordinate::new(1, 1, 1), test_block());
 
         assert_eq!(chunk.data_changed, true);
 

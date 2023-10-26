@@ -27,7 +27,7 @@ impl Plugin for EditorCameraPlugin {
 // TODO: Select blocks by clicking on them
 // TODO: event for when targetblock changes
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct CameraInteraction {
     ray_distance: f32,
     cursor_ray: Option<Ray>,
@@ -44,7 +44,7 @@ impl Default for CameraInteraction {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct TargetBlock {
     // block_entity: Entity,
     normal: Vec3,

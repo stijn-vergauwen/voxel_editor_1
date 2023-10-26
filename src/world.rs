@@ -7,7 +7,7 @@ mod interaction;
 use bevy::prelude::*;
 
 use self::{
-    block::Block, builder::WorldBuilderPlugin, chunk::Chunk, coordinates::ChunkIndex,
+    block::Block, builder::WorldBuilderPlugin, chunk::Chunk, coordinates::Coordinate,
     interaction::WorldInteractionPlugin,
 };
 
@@ -29,9 +29,9 @@ const CHUNK_SIZE: usize = 16;
 
 // Utilities
 
-// TODO: These transform returns don't make sense, replace with index to position utils
-fn build_block_at_index(index: ChunkIndex, block: Block) -> (Block, Transform) {
-    let position = Vec3::new(index.x as f32, index.y as f32, index.z as f32);
+// TODO: These transform returns don't make sense, replace with coord to position utils
+fn build_block_at_coordinate(coord: Coordinate, block: Block) -> (Block, Transform) {
+    let position = Vec3::new(coord.x as f32, coord.y as f32, coord.z as f32);
 
     (block, Transform::from_translation(position))
 }
@@ -42,10 +42,10 @@ fn build_blocks_of_chunk(chunk: &Chunk) -> Vec<(Block, Transform)> {
     for x in 0..CHUNK_SIZE {
         for y in 0..CHUNK_SIZE {
             for z in 0..CHUNK_SIZE {
-                let index = ChunkIndex::new(x, y, z);
+                let coord = Coordinate::new(x, y, z);
 
-                if let Some(block) = chunk.get_block(index) {
-                    blocks.push(build_block_at_index(index, block));
+                if let Some(block) = chunk.get_block(coord) {
+                    blocks.push(build_block_at_coordinate(coord, block));
                 }
             }
         }
