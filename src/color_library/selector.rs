@@ -81,18 +81,11 @@ fn spawn_selector_buttons(mut commands: Commands, color_library: Res<ColorLibrar
 
 fn update_highlighted_ui(
     mut buttons: Query<(&mut SelectorButton, &mut BorderColor)>,
-    on_clicked: EventReader<OnColorClicked>,
-    color_library: Res<ColorLibrary>,
+    mut on_clicked: EventReader<OnColorClicked>,
 ) {
-    // TODO: this function shouldn't rely on ColorLibrary, use value in OnColorClicked instead
-    if !on_clicked.is_empty() {
-        let buttons_to_update = buttons.iter_mut().filter(|(button, _)| {
-            button.is_highlighted != check_if_selected(button, color_library.selected_color())
-        });
-
-        for (mut button, mut border) in buttons_to_update {
-            button.is_highlighted = check_if_selected(&button, color_library.selected_color());
-            border.0 = button.border_color();
+    for event in on_clicked.iter() {
+        for (mut button, mut border) in buttons.iter_mut() {
+            update_button_highlight(&mut button, &mut border, event.color);
         }
     }
 }
@@ -121,6 +114,19 @@ fn check_if_selected(button: &SelectorButton, selected_color: Option<Color>) -> 
     Some(button.color) == selected_color
 }
 
+fn update_button_highlight(
+    button: &mut SelectorButton,
+    border: &mut BorderColor,
+    selected_color: Color,
+) {
+    let has_selected_color = button.color == selected_color;
+
+    if button.is_highlighted != has_selected_color {
+        button.is_highlighted = has_selected_color;
+        border.0 = button.border_color();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,33 +145,6 @@ mod tests {
         let node: (ButtonBundle, SelectorButton) = selector.to_ui();
 
         assert_eq!(node.0.background_color.0, Color::GREEN);
-    }
-
-    // This aciton became an event so I don't think I can test it anymore?
-    // #[test]
-    // fn clicking_button_selects_that_color() {
-    //     let mut library = ColorLibrary::empty();
-    //     library.add_color(Color::RED);
-    //     library.add_color(Color::GREEN);
-
-    //     let selector = SelectorButton::new(Color::GREEN);
-
-    //     assert_eq!(library.selected_color(), Some(Color::RED));
-
-    //     selector.set_selected(&mut library);
-
-    //     assert_eq!(library.selected_color(), Some(Color::GREEN));
-    // }
-
-    #[test]
-    fn can_set_button_highlighted() {
-        let mut selector = SelectorButton::new(Color::GREEN);
-
-        assert_eq!(selector.is_highlighted, false);
-
-        selector.is_highlighted = true;
-
-        assert_eq!(selector.is_highlighted, true);
     }
 
     #[test]
@@ -188,5 +167,35 @@ mod tests {
 
         assert_eq!(selected_button.background_color.0, Color::GREEN);
         assert_eq!(selected_button.border_color.0, Color::WHITE);
+    }
+
+    #[test]
+    fn correctly_updates_button_highlights_when_color_changed() {
+        let mut buttons = build_buttons_from_colors(vec![Color::RED, Color::GREEN, Color::BLUE]);
+        buttons[0].is_highlighted = true;
+
+        assert_eq!(find_selected_color(&buttons), Some(Color::RED));
+        assert_eq!(count_highlighted_buttons(&buttons), 1);
+
+        for button in buttons.iter_mut() {
+            update_button_highlight(button, &mut BorderColor(Color::WHITE), Color::GREEN);
+        }
+
+        assert_eq!(find_selected_color(&buttons), Some(Color::GREEN));
+        assert_eq!(count_highlighted_buttons(&buttons), 1);
+
+        fn find_selected_color(buttons: &Vec<SelectorButton>) -> Option<Color> {
+            buttons
+                .iter()
+                .find(|button| button.is_highlighted)
+                .map(|button| button.color)
+        }
+
+        fn count_highlighted_buttons(buttons: &Vec<SelectorButton>) -> usize {
+            buttons
+                .iter()
+                .filter(|button| button.is_highlighted)
+                .count()
+        }
     }
 }
