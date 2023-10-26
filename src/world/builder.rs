@@ -15,7 +15,10 @@ impl Plugin for WorldBuilderPlugin {
 fn spawn_chunk(mut commands: Commands) {
     let ground_height = 2;
 
-    commands.spawn((SpatialBundle::default(), Chunk::flat_ground(ground_height)));
+    commands.spawn((
+        SpatialBundle::default(),
+        Chunk::flat_ground(ground_height, Color::LIME_GREEN),
+    ));
 }
 
 fn redraw_changed_chunks(

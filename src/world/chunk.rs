@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use super::{block::Block, build_blocks_of_chunk, coordinates::ChunkIndex, CHUNK_SIZE};
 
-#[derive(Component, Reflect, Default, Clone, Copy)]
+#[derive(Component, Reflect, Default, Clone, Copy, Debug)]
 #[reflect(Component)]
 pub struct Chunk {
     blocks: [[[Option<Block>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
@@ -36,14 +36,14 @@ impl Chunk {
         index.max_element() >= self.blocks.len()
     }
 
-    pub fn flat_ground(ground_height: usize) -> Self {
+    pub fn flat_ground(ground_height: usize, color: Color) -> Self {
         let mut chunk = Chunk::EMPTY;
 
         for x in 0..CHUNK_SIZE {
             for y in 0..ground_height {
                 for z in 0..CHUNK_SIZE {
                     let index = ChunkIndex::new(x, y, z);
-                    chunk.set_block(index, Some(Block::GRASS));
+                    chunk.set_block(index, Some(Block::new(color)));
                 }
             }
         }
@@ -86,9 +86,9 @@ mod tests {
 
         assert_eq!(chunk.get_block(index), None);
 
-        chunk.set_block(index, Some(Block::GRASS));
+        chunk.set_block(index, test_block());
 
-        assert_eq!(chunk.get_block(index), Some(Block::GRASS));
+        assert_eq!(chunk.get_block(index), test_block());
     }
 
     // TODO: coordinate to position should be a different test in a different module
@@ -108,8 +108,8 @@ mod tests {
     fn can_build_blocks_from_chunk() {
         let mut chunk = Chunk::EMPTY;
 
-        chunk.set_block(ChunkIndex::new(1, 1, 1), Some(Block::GRASS));
-        chunk.set_block(ChunkIndex::new(2, 6, 3), Some(Block::GRASS));
+        chunk.set_block(ChunkIndex::new(1, 1, 1), test_block());
+        chunk.set_block(ChunkIndex::new(2, 6, 3), test_block());
 
         let blocks: Vec<(Block, Transform)> = build_blocks_of_chunk(&chunk);
         let first_block_position = blocks[0].1.translation;
@@ -124,11 +124,11 @@ mod tests {
     fn chunk_can_be_created_as_flat_ground() {
         let ground_height = 2;
 
-        let chunk = Chunk::flat_ground(ground_height);
+        let chunk = Chunk::flat_ground(ground_height, Color::WHITE);
 
         assert_eq!(
             chunk.get_block(ChunkIndex::new(0, 1, 0)),
-            Some(Block::GRASS)
+            test_block()
         );
         assert_eq!(chunk.get_block(ChunkIndex::new(0, 2, 0)), None);
     }
@@ -139,12 +139,16 @@ mod tests {
 
         assert_eq!(chunk.data_changed, false);
 
-        chunk.set_block(ChunkIndex::new(1, 1, 1), Some(Block::GRASS));
+        chunk.set_block(ChunkIndex::new(1, 1, 1), test_block());
 
         assert_eq!(chunk.data_changed, true);
 
         chunk.generate_blocks();
 
         assert_eq!(chunk.data_changed, false);
+    }
+
+    fn test_block() -> Option<Block> {
+        Some(Block::new(Color::WHITE))
     }
 }
