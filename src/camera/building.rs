@@ -3,7 +3,7 @@ use flying_camera::FlyingCamera;
 
 use crate::{
     color_library::ColorLibrary,
-    world::{block::Block, coordinates::Coordinate},
+    world::{block::Block, coordinates::Coordinate, WorldSettings},
 };
 
 use super::{CameraInteraction, TargetBlock};
@@ -50,6 +50,7 @@ fn send_build_event(
     mouse_input: Res<Input<MouseButton>>,
     key_input: Res<Input<KeyCode>>,
     color_library: Res<ColorLibrary>,
+    world_settings: Res<WorldSettings>,
 ) {
     if let Some(target) = get_valid_interaction_target(&cameras) {
         if mouse_input.just_pressed(BUILD_BUTTON) && !key_input.pressed(REMOVE_KEY) {
@@ -57,7 +58,7 @@ fn send_build_event(
                 color_library
                     .selected_color()
                     .map(|color| Block::new(color)),
-                Coordinate::from(target.out_position),
+                world_settings.position_to_coordinate(target.out_position),
             ));
         }
     }
@@ -68,11 +69,12 @@ fn send_remove_event(
     cameras: Query<(&CameraInteraction, &FlyingCamera)>,
     mouse_input: Res<Input<MouseButton>>,
     key_input: Res<Input<KeyCode>>,
+    world_settings: Res<WorldSettings>,
 ) {
     if let Some(target) = get_valid_interaction_target(&cameras) {
         if mouse_input.just_pressed(BUILD_BUTTON) && key_input.pressed(REMOVE_KEY) {
             remove_event.send(OnRemoveBlockRequest::new(Coordinate::from(
-                target.in_position,
+                world_settings.position_to_coordinate(target.in_position),
             )));
         }
     }

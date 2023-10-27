@@ -12,8 +12,11 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn empty(size: usize) -> Self {
+        // TODO: with capacity & fill doesn't do what I expected, the array is empty. Fix this.
         let mut blocks = Vec::with_capacity(size * size * size);
         blocks.fill(None);
+
+        println!("{:?}", blocks);
 
         Self {
             blocks,
