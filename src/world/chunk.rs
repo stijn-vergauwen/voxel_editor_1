@@ -54,8 +54,18 @@ impl Chunk {
         chunk
     }
 
-    fn coordinate_to_index(&self, coord: Coordinate) -> usize {
+    pub fn coordinate_to_index(&self, coord: Coordinate) -> usize {
         coord.x + coord.y * self.size + coord.z * self.size * self.size
+    }
+
+    pub fn index_to_coordinate(&self, index: usize) -> Coordinate {
+        let z = index / (self.size * self.size);
+        let z_remainder = index % (self.size * self.size);
+        let y = z_remainder / self.size;
+        let y_remainder = z_remainder % self.size;
+        let x = y_remainder;
+
+        Coordinate::new(x, y, z)
     }
 }
 
@@ -67,17 +77,32 @@ mod tests {
     // TODO: get iterator over solid blocks
 
     #[test]
-    fn can_get_block_id() {
-        let chunk = Chunk::empty(4);
-        let coord = Coordinate::new(0, 0, 0);
+    fn created_chunk_has_correct_block_count() {
+        let chunk = Chunk::empty(3);
 
-        let block_id = chunk.get_block(coord);
+        assert_eq!(chunk.blocks.len(), 27);
 
-        assert_eq!(block_id, None);
+        let chunk = Chunk::empty(5);
+
+        assert_eq!(chunk.blocks.len(), 125);
+
+        let chunk = Chunk::empty(10);
+
+        assert_eq!(chunk.blocks.len(), 1000);
     }
 
     #[test]
-    fn can_change_block_id() {
+    fn can_get_block() {
+        let chunk = Chunk::empty(4);
+        let coord = Coordinate::new(0, 0, 0);
+
+        let block = chunk.get_block(coord);
+
+        assert_eq!(block, None);
+    }
+
+    #[test]
+    fn can_change_block() {
         let mut chunk = Chunk::empty(4);
         let coord = Coordinate::new(0, 0, 0);
 
@@ -110,6 +135,36 @@ mod tests {
         chunk.set_block(Coordinate::new(1, 1, 1), test_block());
 
         assert_eq!(chunk.data_changed, true);
+    }
+
+    #[test]
+    fn can_calculate_index_from_coordinate() {
+        let size = 4;
+        let chunk = Chunk::empty(size);
+
+        assert_eq!(chunk.coordinate_to_index(Coordinate::new(3, 0, 0)), 3);
+        assert_eq!(chunk.coordinate_to_index(Coordinate::new(2, 2, 2)), 42);
+
+        let size = 10;
+        let chunk = Chunk::empty(size);
+
+        assert_eq!(chunk.coordinate_to_index(Coordinate::new(3, 0, 0)), 3);
+        assert_eq!(chunk.coordinate_to_index(Coordinate::new(2, 2, 2)), 222);
+    }
+
+    #[test]
+    fn can_calculate_coordinate_from_index() {
+        let size = 4;
+        let chunk = Chunk::empty(size);
+
+        assert_eq!(chunk.index_to_coordinate(2), Coordinate::new(2, 0, 0));
+        assert_eq!(chunk.index_to_coordinate(58), Coordinate::new(2, 2, 3));
+
+        let size = 10;
+        let chunk = Chunk::empty(size);
+
+        assert_eq!(chunk.index_to_coordinate(3), Coordinate::new(3, 0, 0));
+        assert_eq!(chunk.index_to_coordinate(232), Coordinate::new(2, 3, 2));
     }
 
     fn test_block() -> Option<Block> {
