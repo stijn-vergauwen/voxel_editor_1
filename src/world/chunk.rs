@@ -35,6 +35,17 @@ impl Chunk {
         }
     }
 
+    pub fn get_all_blocks(&self) -> Vec<Option<Block>> {
+        self.blocks.clone()
+    }
+
+    pub fn get_assigned_blocks(&self) -> Vec<Block> {
+        self.blocks
+            .iter()
+            .filter_map(|block| block.to_owned())
+            .collect()
+    }
+
     pub fn size(&self) -> usize {
         self.size
     }
