@@ -24,8 +24,8 @@ impl Plugin for WorldPlugin {
 
 #[derive(Resource, Debug)]
 pub struct WorldSettings {
-    pub chunk_size: usize,
-    pub block_scale: f32,
+    chunk_size: usize,
+    block_scale: f32,
 }
 
 impl WorldSettings {
@@ -35,6 +35,22 @@ impl WorldSettings {
             block_scale,
         }
     }
+
+    pub fn coordinate_to_position(&self, coord: Coordinate) -> Vec3 {
+        Vec3::new(
+            coord.x as f32 * self.block_scale,
+            coord.y as f32 * self.block_scale,
+            coord.z as f32 * self.block_scale,
+        )
+    }
+
+    pub fn position_to_coordinate(&self, position: Vec3) -> Coordinate {
+        Coordinate::new(
+            (position.x / self.block_scale) as usize,
+            (position.y / self.block_scale) as usize,
+            (position.z / self.block_scale) as usize,
+        )
+    }
 }
 
 // TODO: block size should be adjustable
@@ -43,7 +59,7 @@ impl WorldSettings {
 
 // Utilities
 
-// TODO: These build functions don't make sense, replace with coord to position utils
+// TODO: These build functions don't make sense, replace with coord to position utils <- doing
 fn build_block_at_coordinate(coord: Coordinate, block: Block) -> (Block, Transform) {
     let position = Vec3::new(coord.x as f32, coord.y as f32, coord.z as f32);
 
