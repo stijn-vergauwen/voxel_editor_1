@@ -38,24 +38,38 @@ fn redraw_requested_chunks(
         let chunk_entity = request.chunk;
 
         if let Ok(chunk) = chunks.get(chunk_entity) {
-            // TODO: split calculations to function
-
             // Remove blocks
             commands.entity(chunk_entity).despawn_descendants();
 
-            // Spawn blocks
-            let blocks = calculate_blocks_spawn_data(&chunk, &world_settings);
-            let mesh_handle = meshes.add(shape::Cube::new(0.9).into());
+            // draw blocks
+            let blocks = calculate_blocks_spawn_positions(&chunk, &world_settings);
 
-            let block_entities =
-                spawn_chunk_blocks(&mut commands, blocks, mesh_handle, &mut materials);
-
-            commands.entity(chunk_entity).push_children(&block_entities);
+            draw_chunk(
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+                blocks,
+                chunk_entity,
+            );
         }
     }
 }
 
-fn spawn_chunk_blocks(
+fn draw_chunk(
+    mut commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    blocks: Vec<(Block, Vec3)>,
+    chunk_entity: Entity,
+) {
+    let mesh_handle = meshes.add(shape::Cube::new(0.9).into());
+
+    let block_entities = spawn_blocks(&mut commands, blocks, mesh_handle, materials);
+
+    commands.entity(chunk_entity).push_children(&block_entities);
+}
+
+fn spawn_blocks(
     commands: &mut Commands,
     blocks: Vec<(Block, Vec3)>,
     mesh_handle: Handle<Mesh>,
@@ -70,15 +84,7 @@ fn spawn_chunk_blocks(
         });
 
         let id = commands
-            .spawn((
-                PbrBundle {
-                    mesh: mesh_handle.clone(),
-                    material: material_handle.clone(),
-                    transform: Transform::from_translation(*position),
-                    ..default()
-                },
-                Collider::cuboid(0.5, 0.5, 0.5),
-            ))
+            .spawn(build_block(&mesh_handle, &material_handle, *position))
             .id();
 
         spawned_entities.push(id);
@@ -87,7 +93,7 @@ fn spawn_chunk_blocks(
     spawned_entities
 }
 
-fn calculate_blocks_spawn_data(
+fn calculate_blocks_spawn_positions(
     chunk: &Chunk,
     world_settings: &WorldSettings,
 ) -> Vec<(Block, Vec3)> {
@@ -96,4 +102,20 @@ fn calculate_blocks_spawn_data(
         .into_iter()
         .map(|(block, coord)| (block, world_settings.coordinate_to_position(coord)))
         .collect()
+}
+
+fn build_block(
+    mesh_handle: &Handle<Mesh>,
+    material_handle: &Handle<StandardMaterial>,
+    position: Vec3,
+) -> (PbrBundle, Collider) {
+    (
+        PbrBundle {
+            mesh: mesh_handle.clone(),
+            material: material_handle.clone(),
+            transform: Transform::from_translation(position),
+            ..default()
+        },
+        Collider::cuboid(0.5, 0.5, 0.5),
+    )
 }
