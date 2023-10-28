@@ -20,8 +20,8 @@ pub struct ColorLibrary {
     colors: Vec<Color>,
 }
 
-#[allow(unused)]
 impl ColorLibrary {
+    #[allow(unused)]
     pub fn empty() -> Self {
         Self {
             colors: Vec::new(),
@@ -36,6 +36,7 @@ impl ColorLibrary {
         }
     }
 
+    #[allow(unused)]
     pub fn add_color(&mut self, color: Color) {
         self.colors.push(color);
     }

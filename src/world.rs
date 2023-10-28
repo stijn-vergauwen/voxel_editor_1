@@ -48,14 +48,13 @@ impl WorldSettings {
         )
     }
 
-    pub fn position_to_coordinate(&self, position: Vec3) -> Coordinate {
-        Coordinate::new(
-            (position.x / self.block_scale) as usize,
-            (position.y / self.block_scale) as usize,
-            (position.z / self.block_scale) as usize,
-        )
-    }
+    // pub fn position_to_coordinate(&self, position: Vec3) -> Coordinate {
+    //     Coordinate::new(
+    //         (position.x / self.block_scale) as usize,
+    //         (position.y / self.block_scale) as usize,
+    //         (position.z / self.block_scale) as usize,
+    //     )
+    // }
 }
 
-// TODO: block size should be adjustable
 // TODO: event for when a chunk needs to update

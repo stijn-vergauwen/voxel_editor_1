@@ -10,7 +10,6 @@ pub struct Chunk {
     size: usize,
 }
 
-#[allow(unused)]
 impl Chunk {
     pub fn empty(size: usize) -> Self {
         let block_count = size * size * size;
@@ -40,15 +39,12 @@ impl Chunk {
         self.blocks.clone()
     }
 
+    // TODO: replace with method that returns assigned blocks + their coordinate, much more useful.
     pub fn get_assigned_blocks(&self) -> Vec<Block> {
         self.blocks
             .iter()
             .filter_map(|block| block.to_owned())
             .collect()
-    }
-
-    pub fn size(&self) -> usize {
-        self.size
     }
 
     pub fn flat_ground(ground_height: usize, color: Color, chunk_size: usize) -> Self {
