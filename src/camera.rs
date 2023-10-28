@@ -4,6 +4,8 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
+use crate::world::WorldSettings;
+
 use self::building::CameraBuildingPlugin;
 
 pub struct EditorCameraPlugin;
@@ -78,13 +80,12 @@ struct TargetBlock {
 }
 
 impl TargetBlock {
-    fn from_raycast(hit: RayHit) -> Self {
-        // TODO: in & out positions don't account for block size
+    fn from_raycast(hit: RayHit, block_scale: f32) -> Self {
         let point = hit.point;
         let normal = hit.normal;
 
-        let in_position = (point - normal / 2.0).round();
-        let out_position = (point + normal / 2.0).round();
+        let in_position = ((point / block_scale) - normal / 2.0).round() * block_scale;
+        let out_position = ((point / block_scale) + normal / 2.0).round() * block_scale;
 
         Self {
             normal,
@@ -120,9 +121,11 @@ fn update_cursor_ray(
 fn update_interaction_target(
     rapier_context: Res<RapierContext>,
     mut cameras: Query<&mut CameraInteraction>,
+    world_settings: Res<WorldSettings>,
 ) {
     for mut camera in cameras.iter_mut() {
-        camera.target = cast_ray_to_target_block(&rapier_context, &camera);
+        camera.target =
+            cast_ray_to_target_block(&rapier_context, &camera, world_settings.block_scale());
     }
 }
 
@@ -155,6 +158,7 @@ fn get_cursor_as_ray(
 fn cast_ray_to_target_block(
     rapier: &RapierContext,
     camera: &CameraInteraction,
+    block_scale: f32,
 ) -> Option<TargetBlock> {
     let ray = camera.cursor_ray?;
 
@@ -166,7 +170,8 @@ fn cast_ray_to_target_block(
         QueryFilter::new(),
     );
 
-    intersection.map(|(_, intersection)| TargetBlock::from_raycast(RayHit::from(intersection)))
+    intersection
+        .map(|(_, intersection)| TargetBlock::from_raycast(RayHit::from(intersection), block_scale))
 }
 
 #[cfg(test)]
@@ -174,6 +179,8 @@ mod tests {
     use bevy_rapier3d::rapier::prelude::FeatureId;
 
     use super::*;
+
+    // TODO: replace in & out positions with coordinates, this data points to block coordinates not just position.
 
     #[test]
     fn can_create_ray_hit() {
@@ -203,35 +210,65 @@ mod tests {
     #[test]
     fn can_create_target_block_from_raycast() {
         let ray_hit = RayHit::new(Vec3::new(1.0, 0.0, 1.8), Vec3::X, 0.0);
+        let block_scale = 1.0;
 
-        let target_block = TargetBlock::from_raycast(ray_hit);
+        let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
 
         assert_eq!(target_block.normal, Vec3::X);
     }
 
     #[test]
     fn target_block_calculates_in_position() {
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(1.5, 0.0, 1.8), Vec3::X, 2.0));
+        let block_scale = 1.0;
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(1.5, 0.0, 1.8), Vec3::X, 2.0),
+            block_scale,
+        );
 
         assert_eq!(target_block.in_position, Vec3::new(1.0, 0.0, 2.0));
 
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(7.8, 3.4, 7.2), Vec3::Y, 1.0));
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(7.8, 3.4, 7.2), Vec3::Y, 1.0),
+            block_scale,
+        );
 
         assert_eq!(target_block.in_position, Vec3::new(8.0, 3.0, 7.0));
     }
 
     #[test]
     fn target_block_calculates_out_position() {
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(3.5, 0.0, 2.8), Vec3::X, 2.0));
+        let block_scale = 1.0;
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(3.5, 0.0, 2.8), Vec3::X, 2.0),
+            block_scale,
+        );
 
         assert_eq!(target_block.out_position, Vec3::new(4.0, 0.0, 3.0));
 
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(5.8, 2.4, 3.2), Vec3::Y, 1.0));
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(5.8, 2.4, 3.2), Vec3::Y, 1.0),
+            block_scale,
+        );
 
         assert_eq!(target_block.out_position, Vec3::new(6.0, 3.0, 3.0));
+    }
+
+    #[test]
+    fn target_block_accounts_for_block_scale() {
+        let ray_hit = RayHit::new(Vec3::new(3.0, 0.0, 0.0), Vec3::X, 1.0);
+        let block_scale = 2.0;
+
+        let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
+
+        assert_eq!(target_block.in_position, Vec3::new(2.0, 0.0, 0.0));
+        assert_eq!(target_block.out_position, Vec3::new(4.0, 0.0, 0.0));
+
+        let ray_hit = RayHit::new(Vec3::new(4.0, 0.0, 2.0), Vec3::X, 1.0);
+        let block_scale = 3.5;
+
+        let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
+
+        assert_eq!(target_block.in_position, Vec3::new(3.5, 0.0, 3.5));
+        assert_eq!(target_block.out_position, Vec3::new(7.0, 0.0, 3.5));
     }
 }

@@ -36,6 +36,10 @@ impl WorldSettings {
         }
     }
 
+    pub fn block_scale(&self) -> f32 {
+        self.block_scale
+    }
+
     pub fn coordinate_to_position(&self, coord: Coordinate) -> Vec3 {
         Vec3::new(
             coord.x as f32 * self.block_scale,
