@@ -7,9 +7,11 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11", features = ["dynamic_linking"] }
-bevy-inspector-egui = "0.19.0"
+bevy-inspector-egui = "0.20"
 bevy_rapier3d = { version = "0.22", features = ["debug-render-3d"] }
 flying_camera = { version = "0.1.0", git = "https://github.com/stijn-vergauwen/flying_camera.git" }
+ron = "0.8"
+serde = "1.0"
 
 [profile.dev]
 opt-level = 1

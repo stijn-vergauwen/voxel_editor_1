@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use super::{block::Block, coordinates::Coordinate};
 
@@ -11,7 +12,7 @@ impl Plugin for WorldChunkPlugin {
     }
 }
 
-#[derive(Component, Default, Clone, Debug)]
+#[derive(Component, Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Chunk {
     blocks: Vec<Option<Block>>,
     data_changed: bool,
