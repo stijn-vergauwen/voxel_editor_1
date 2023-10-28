@@ -10,6 +10,7 @@ pub struct Chunk {
     size: usize,
 }
 
+#[allow(unused)]
 impl Chunk {
     pub fn empty(size: usize) -> Self {
         let block_count = size * size * size;

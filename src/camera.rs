@@ -146,11 +146,66 @@ fn cast_ray_to_target_block(
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
+    use bevy_rapier3d::rapier::prelude::FeatureId;
 
-    // Idk how to write tests for raycasting from camera since this uses a lot of Bevy components.
+    use super::*;
 
-    // TODO: create targetBlock
-    // TODO: calculate in & out positions
-    // TODO: flipped normal should flip in & out
+    // TODO: newtype for raycast info
+
+    #[test]
+    fn can_create_target_block_from_raycast() {
+        let intersection = RayIntersection {
+            feature: FeatureId::Face(0),
+            normal: Vec3::X,
+            point: Vec3::new(1.5, 0.0, 1.8),
+            toi: 1.0,
+        };
+
+        let target_block = TargetBlock::from_raycast(intersection);
+
+        assert_eq!(target_block.in_position, Vec3::new(1.0, 0.0, 2.0));
+        assert_eq!(target_block.out_position, Vec3::new(2.0, 0.0, 2.0));
+    }
+
+    #[test]
+    fn target_block_calculates_in_position() {
+        let target_block = TargetBlock::from_raycast(RayIntersection {
+            feature: FeatureId::Face(0),
+            normal: Vec3::X,
+            point: Vec3::new(1.5, 0.0, 1.8),
+            toi: 1.0,
+        });
+
+        assert_eq!(target_block.in_position, Vec3::new(1.0, 0.0, 2.0));
+
+        let target_block = TargetBlock::from_raycast(RayIntersection {
+            feature: FeatureId::Face(0),
+            normal: Vec3::Y,
+            point: Vec3::new(7.8, 3.4, 7.2),
+            toi: 1.0,
+        });
+
+        assert_eq!(target_block.in_position, Vec3::new(8.0, 3.0, 7.0));
+    }
+
+    #[test]
+    fn target_block_calculates_out_position() {
+        let target_block = TargetBlock::from_raycast(RayIntersection {
+            feature: FeatureId::Face(0),
+            normal: Vec3::X,
+            point: Vec3::new(3.5, 0.0, 2.8),
+            toi: 1.0,
+        });
+
+        assert_eq!(target_block.out_position, Vec3::new(4.0, 0.0, 3.0));
+
+        let target_block = TargetBlock::from_raycast(RayIntersection {
+            feature: FeatureId::Face(0),
+            normal: Vec3::Y,
+            point: Vec3::new(5.8, 2.4, 3.2),
+            toi: 1.0,
+        });
+
+        assert_eq!(target_block.out_position, Vec3::new(6.0, 3.0, 3.0));
+    }
 }

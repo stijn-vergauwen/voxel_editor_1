@@ -36,6 +36,8 @@ use world::WorldPlugin;
 
 */
 
+// TODO: newtype for directions, confined to normalized values.
+
 fn main() {
     App::new()
         .add_plugins((
