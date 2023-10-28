@@ -1,6 +1,7 @@
 use std::fs;
 
 use bevy::prelude::*;
+use ron::Error;
 
 use crate::world::chunk::Chunk;
 
@@ -12,7 +13,11 @@ impl Plugin for SceneLoaderPlugin {
             .add_event::<OnLoadSceneRequest>()
             .add_systems(
                 Update,
-                (send_requests_on_keyboard_input, handle_save_requests),
+                (
+                    send_requests_on_keyboard_input,
+                    handle_save_requests,
+                    handle_load_requests,
+                ),
             );
     }
 }
@@ -21,9 +26,6 @@ const FILE_PATH_TO_SAVES: &str = "assets/scenes/test_save.ron";
 
 const SAVE_KEY: KeyCode = KeyCode::I;
 const LOAD_KEY: KeyCode = KeyCode::O;
-
-// TODO: save scene to test file <- doing
-// TODO: load scene from test file
 
 #[derive(Event)]
 struct OnSaveSceneRequest;
@@ -49,16 +51,38 @@ fn send_requests_on_keyboard_input(
 
 fn handle_save_requests(chunks: Query<&Chunk>, on_save_request: EventReader<OnSaveSceneRequest>) {
     if !on_save_request.is_empty() {
-        save_chunk_to_file(chunks.single(), FILE_PATH_TO_SAVES);
+        if let Err(error) = save_chunk_to_file(chunks.single(), FILE_PATH_TO_SAVES) {
+            println!("Error while saving chunk: {:?}", error);
+        }
     }
 }
 
-fn save_chunk_to_file(chunk: &Chunk, path: &str) {
-    if let Ok(serialized) = ron::to_string(&chunk) {
-        let result = fs::write(path, serialized);
-        
-        if let Err(err) = result {
-            println!("Error while saving data to file! error: {}", err)
-        };
+fn handle_load_requests(
+    mut commands: Commands,
+    chunks: Query<Entity, With<Chunk>>,
+    on_load_request: EventReader<OnLoadSceneRequest>,
+) {
+    if !on_load_request.is_empty() {
+        let chunk_entity = chunks.single();
+
+        match load_chunk_from_file(FILE_PATH_TO_SAVES) {
+            Ok(mut new_chunk) => {
+                new_chunk.set_changed();
+                commands.entity(chunk_entity).insert(new_chunk);
+            }
+            Err(error) => {
+                println!("Error while loading chunk: {:?}", error);
+            }
+        }
     }
+}
+
+fn save_chunk_to_file(chunk: &Chunk, path: &str) -> Result<(), Error> {
+    let serialized = ron::to_string(&chunk)?;
+    Ok(fs::write(path, serialized)?)
+}
+
+fn load_chunk_from_file(path: &str) -> Result<Chunk, Error> {
+    let file = fs::read_to_string(path)?;
+    Ok(ron::from_str::<Chunk>(&file)?)
 }

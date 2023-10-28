@@ -83,6 +83,11 @@ impl Chunk {
 
         Coordinate::new(x, y, z)
     }
+
+    /// Manually set this chunk's `data_changed` to true.
+    pub fn set_changed(&mut self) {
+        self.data_changed = true;
+    }
 }
 
 #[derive(Event)]
