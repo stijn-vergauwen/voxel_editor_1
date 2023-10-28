@@ -27,6 +27,32 @@ impl Plugin for EditorCameraPlugin {
 // TODO: Select blocks by clicking on them
 // TODO: event for when targetblock changes
 
+struct RayHit {
+    point: Vec3,
+    normal: Vec3,
+    distance: f32,
+}
+
+impl RayHit {
+    fn new(point: Vec3, normal: Vec3, distance: f32) -> Self {
+        Self {
+            point,
+            normal,
+            distance,
+        }
+    }
+}
+
+impl From<RayIntersection> for RayHit {
+    fn from(value: RayIntersection) -> Self {
+        Self {
+            point: value.point,
+            normal: value.normal,
+            distance: value.toi,
+        }
+    }
+}
+
 #[derive(Component, Debug)]
 struct CameraInteraction {
     ray_distance: f32,
@@ -46,17 +72,16 @@ impl Default for CameraInteraction {
 
 #[derive(Clone, Copy, Debug)]
 struct TargetBlock {
-    // block_entity: Entity,
     normal: Vec3,
     in_position: Vec3,
     out_position: Vec3,
 }
 
 impl TargetBlock {
-    fn from_raycast(intersection: RayIntersection) -> Self {
+    fn from_raycast(hit: RayHit) -> Self {
         // TODO: in & out positions don't account for block size
-        let point = intersection.point;
-        let normal = intersection.normal;
+        let point = hit.point;
+        let normal = hit.normal;
 
         let in_position = (point - normal / 2.0).round();
         let out_position = (point + normal / 2.0).round();
@@ -141,7 +166,7 @@ fn cast_ray_to_target_block(
         QueryFilter::new(),
     );
 
-    intersection.map(|(_, intersection)| TargetBlock::from_raycast(intersection))
+    intersection.map(|(_, intersection)| TargetBlock::from_raycast(RayHit::from(intersection)))
 }
 
 #[cfg(test)]
@@ -150,10 +175,17 @@ mod tests {
 
     use super::*;
 
-    // TODO: newtype for raycast info
+    #[test]
+    fn can_create_ray_hit() {
+        let ray_hit = RayHit::new(Vec3::new(2.0, 2.0, 2.0), Vec3::Y, 3.0);
+
+        assert_eq!(ray_hit.point, Vec3::new(2.0, 2.0, 2.0));
+        assert_eq!(ray_hit.normal, Vec3::Y);
+        assert_eq!(ray_hit.distance, 3.0);
+    }
 
     #[test]
-    fn can_create_target_block_from_raycast() {
+    fn can_create_ray_hit_from_ray_intersection() {
         let intersection = RayIntersection {
             feature: FeatureId::Face(0),
             normal: Vec3::X,
@@ -161,50 +193,44 @@ mod tests {
             toi: 1.0,
         };
 
-        let target_block = TargetBlock::from_raycast(intersection);
+        let ray_hit = RayHit::from(intersection);
 
-        assert_eq!(target_block.in_position, Vec3::new(1.0, 0.0, 2.0));
-        assert_eq!(target_block.out_position, Vec3::new(2.0, 0.0, 2.0));
+        assert_eq!(ray_hit.point, Vec3::new(1.5, 0.0, 1.8));
+        assert_eq!(ray_hit.normal, Vec3::X);
+        assert_eq!(ray_hit.distance, 1.0);
+    }
+
+    #[test]
+    fn can_create_target_block_from_raycast() {
+        let ray_hit = RayHit::new(Vec3::new(1.0, 0.0, 1.8), Vec3::X, 0.0);
+
+        let target_block = TargetBlock::from_raycast(ray_hit);
+
+        assert_eq!(target_block.normal, Vec3::X);
     }
 
     #[test]
     fn target_block_calculates_in_position() {
-        let target_block = TargetBlock::from_raycast(RayIntersection {
-            feature: FeatureId::Face(0),
-            normal: Vec3::X,
-            point: Vec3::new(1.5, 0.0, 1.8),
-            toi: 1.0,
-        });
+        let target_block =
+            TargetBlock::from_raycast(RayHit::new(Vec3::new(1.5, 0.0, 1.8), Vec3::X, 2.0));
 
         assert_eq!(target_block.in_position, Vec3::new(1.0, 0.0, 2.0));
 
-        let target_block = TargetBlock::from_raycast(RayIntersection {
-            feature: FeatureId::Face(0),
-            normal: Vec3::Y,
-            point: Vec3::new(7.8, 3.4, 7.2),
-            toi: 1.0,
-        });
+        let target_block =
+            TargetBlock::from_raycast(RayHit::new(Vec3::new(7.8, 3.4, 7.2), Vec3::Y, 1.0));
 
         assert_eq!(target_block.in_position, Vec3::new(8.0, 3.0, 7.0));
     }
 
     #[test]
     fn target_block_calculates_out_position() {
-        let target_block = TargetBlock::from_raycast(RayIntersection {
-            feature: FeatureId::Face(0),
-            normal: Vec3::X,
-            point: Vec3::new(3.5, 0.0, 2.8),
-            toi: 1.0,
-        });
+        let target_block =
+            TargetBlock::from_raycast(RayHit::new(Vec3::new(3.5, 0.0, 2.8), Vec3::X, 2.0));
 
         assert_eq!(target_block.out_position, Vec3::new(4.0, 0.0, 3.0));
 
-        let target_block = TargetBlock::from_raycast(RayIntersection {
-            feature: FeatureId::Face(0),
-            normal: Vec3::Y,
-            point: Vec3::new(5.8, 2.4, 3.2),
-            toi: 1.0,
-        });
+        let target_block =
+            TargetBlock::from_raycast(RayHit::new(Vec3::new(5.8, 2.4, 3.2), Vec3::Y, 1.0));
 
         assert_eq!(target_block.out_position, Vec3::new(6.0, 3.0, 3.0));
     }
