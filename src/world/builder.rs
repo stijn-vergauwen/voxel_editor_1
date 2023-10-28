@@ -82,42 +82,9 @@ fn calculate_blocks_spawn_data(
     chunk: &Chunk,
     world_settings: &WorldSettings,
 ) -> Vec<(Block, Vec3)> {
-    let blocks = chunk.get_all_blocks();
-
-    blocks
+    chunk
+        .get_assigned_blocks_with_coords()
         .into_iter()
-        .enumerate()
-        .filter_map(|(index, block)| {
-            block.map(|block| {
-                (
-                    block,
-                    world_settings.coordinate_to_position(chunk.index_to_coordinate(index)),
-                )
-            })
-        })
+        .map(|(block, coord)| (block, world_settings.coordinate_to_position(coord)))
         .collect()
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use crate::world::coordinates::Coordinate;
-
-//     use super::*;
-
-//     #[test]
-//     fn can_build_blocks_from_chunk() {
-//         // TODO: fix this test
-//         let mut chunk = Chunk::empty(8);
-
-//         chunk.set_block(Coordinate::new(1, 1, 1), Some(Block::new(Color::WHITE)));
-//         chunk.set_block(Coordinate::new(2, 6, 3), Some(Block::new(Color::WHITE)));
-
-//         let blocks: Vec<(Block, Transform)> = build_blocks_of_chunk(&chunk);
-//         let first_block_position = blocks[0].1.translation;
-//         let second_block_position = blocks[1].1.translation;
-
-//         assert_eq!(blocks.len(), 2);
-//         assert_eq!(first_block_position, Vec3::new(1.0, 1.0, 1.0));
-//         assert_eq!(second_block_position, Vec3::new(2.0, 6.0, 3.0));
-//     }
-// }

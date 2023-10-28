@@ -23,6 +23,7 @@ impl Chunk {
         }
     }
 
+    #[allow(unused)]
     pub fn get_block(&self, coord: Coordinate) -> Option<Block> {
         self.blocks.get(self.coordinate_to_index(coord)).cloned()?
     }
@@ -35,15 +36,13 @@ impl Chunk {
         }
     }
 
-    pub fn get_all_blocks(&self) -> Vec<Option<Block>> {
-        self.blocks.clone()
-    }
-
-    // TODO: replace with method that returns assigned blocks + their coordinate, much more useful.
-    pub fn get_assigned_blocks(&self) -> Vec<Block> {
+    pub fn get_assigned_blocks_with_coords(&self) -> Vec<(Block, Coordinate)> {
         self.blocks
             .iter()
-            .filter_map(|block| block.to_owned())
+            .enumerate()
+            .filter_map(|(index, block)| {
+                block.map(|block| (block, self.index_to_coordinate(index)))
+            })
             .collect()
     }
 
@@ -80,9 +79,6 @@ impl Chunk {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // TODO: get iterator over chunk
-    // TODO: get iterator over solid blocks
 
     #[test]
     fn created_chunk_has_correct_block_count() {
