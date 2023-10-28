@@ -1,33 +1,27 @@
 pub mod building;
+mod target;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
-use crate::world::{coordinates::Coordinate, WorldSettings};
-
-use self::building::CameraBuildingPlugin;
+use self::{
+    building::CameraBuildingPlugin,
+    target::{CameraTargetPlugin, OnTargetBlockChanged, TargetBlock},
+};
 
 pub struct EditorCameraPlugin;
 
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((FlyingCameraPlugin, CameraBuildingPlugin))
+        app.add_plugins((FlyingCameraPlugin, CameraBuildingPlugin, CameraTargetPlugin))
             .add_systems(Startup, spawn_camera)
-            .add_systems(
-                Update,
-                (
-                    update_cursor_ray,
-                    update_interaction_target,
-                    draw_target_block_gizmos,
-                ),
-            );
+            .add_systems(Update, (update_cursor_ray, update_camera_target));
     }
 }
 
 // TODO: make from the depths style camera, maybe replace current with it.
 // TODO: Select blocks by clicking on them
-// TODO: event for when targetblock changes
 
 struct RayHit {
     point: Vec3,
@@ -67,32 +61,9 @@ impl Default for CameraInteraction {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-struct TargetBlock {
-    normal: Vec3,
-    in_coord: Coordinate,
-    out_coord: Coordinate,
-}
-
-impl TargetBlock {
-    fn from_raycast(hit: RayHit, block_scale: f32) -> Self {
-        let point = hit.point;
-        let normal = hit.normal;
-
-        let in_position = (point / block_scale - normal / 2.0).round();
-        let out_position = (point / block_scale + normal / 2.0).round();
-
-        Self {
-            normal,
-            in_coord: Coordinate::from(in_position),
-            out_coord: Coordinate::from(out_position),
-        }
-    }
-}
-
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
-        Name::new("Camera"),
+        Name::new("Flying camera"),
         Camera3dBundle {
             transform: Transform::from_xyz(-6.0, 6.0, 12.0),
             ..Default::default()
@@ -113,30 +84,13 @@ fn update_cursor_ray(
     }
 }
 
-fn update_interaction_target(
-    rapier_context: Res<RapierContext>,
+fn update_camera_target(
     mut cameras: Query<&mut CameraInteraction>,
-    world_settings: Res<WorldSettings>,
+    mut on_target_changed: EventReader<OnTargetBlockChanged>,
 ) {
-    for mut camera in cameras.iter_mut() {
-        camera.target =
-            cast_ray_to_target_block(&rapier_context, &camera, world_settings.block_scale());
-    }
-}
-
-fn draw_target_block_gizmos(
-    cameras: Query<&CameraInteraction>,
-    mut gizmos: Gizmos,
-    world_settings: Res<WorldSettings>,
-) {
-    for camera in cameras.iter() {
-        if let Some(target) = &camera.target {
-            let in_position = world_settings.coordinate_to_position(target.in_coord);
-            let out_position = world_settings.coordinate_to_position(target.out_coord);
-
-            gizmos.cuboid(Transform::from_translation(in_position), Color::WHITE);
-            gizmos.cuboid(Transform::from_translation(out_position), Color::CYAN);
-            gizmos.ray(in_position, target.normal, Color::BLUE);
+    for event in on_target_changed.iter() {
+        if let Ok(mut camera) = cameras.get_mut(event.camera) {
+            camera.target = event.new_target;
         }
     }
 }
@@ -149,25 +103,6 @@ fn get_cursor_as_ray(
     window: &Window,
 ) -> Option<Ray> {
     camera.viewport_to_world(global_transform, window.cursor_position()?)
-}
-
-fn cast_ray_to_target_block(
-    rapier: &RapierContext,
-    camera: &CameraInteraction,
-    block_scale: f32,
-) -> Option<TargetBlock> {
-    let ray = camera.cursor_ray?;
-
-    let intersection = rapier.cast_ray_and_get_normal(
-        ray.origin,
-        ray.direction,
-        camera.ray_distance,
-        false,
-        QueryFilter::new(),
-    );
-
-    intersection
-        .map(|(_, intersection)| TargetBlock::from_raycast(RayHit::from(intersection), block_scale))
 }
 
 #[cfg(test)]
@@ -197,62 +132,5 @@ mod tests {
 
         assert_eq!(ray_hit.point, Vec3::new(1.5, 0.0, 1.8));
         assert_eq!(ray_hit.normal, Vec3::X);
-    }
-
-    #[test]
-    fn can_create_target_block_from_raycast() {
-        let ray_hit = RayHit::new(Vec3::new(1.0, 0.0, 1.8), Vec3::X);
-        let block_scale = 1.0;
-
-        let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
-
-        assert_eq!(target_block.normal, Vec3::X);
-    }
-
-    #[test]
-    fn target_block_calculates_in_coord() {
-        let block_scale = 1.0;
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(1.5, 0.0, 1.8), Vec3::X), block_scale);
-
-        assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 2));
-
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(7.8, 3.4, 7.2), Vec3::Y), block_scale);
-
-        assert_eq!(target_block.in_coord, Coordinate::new(8, 3, 7));
-    }
-
-    #[test]
-    fn target_block_calculates_out_coord() {
-        let block_scale = 1.0;
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(3.5, 0.0, 2.8), Vec3::X), block_scale);
-
-        assert_eq!(target_block.out_coord, Coordinate::new(4, 0, 3));
-
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(5.8, 2.4, 3.2), Vec3::Y), block_scale);
-
-        assert_eq!(target_block.out_coord, Coordinate::new(6, 3, 3));
-    }
-
-    #[test]
-    fn target_block_accounts_for_block_scale() {
-        let ray_hit = RayHit::new(Vec3::new(3.0, 0.0, 0.0), Vec3::X);
-        let block_scale = 2.0;
-
-        let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
-
-        assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 0));
-        assert_eq!(target_block.out_coord, Coordinate::new(2, 0, 0));
-
-        let ray_hit = RayHit::new(Vec3::new(4.0, 0.0, 2.0), Vec3::X);
-        let block_scale = 3.5;
-
-        let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
-
-        assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 1));
-        assert_eq!(target_block.out_coord, Coordinate::new(2, 0, 1));
     }
 }
