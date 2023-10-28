@@ -37,6 +37,16 @@ use world::WorldPlugin;
 */
 
 // TODO: newtype for directions, confined to normalized values.
+// TODO: module for mouse interaction
+// TODO: event for mouse click
+// TODO: check if ui is clicked or not
+// TODO: block world interaction when ui is clicked
+// TODO: a build & a select mode
+// TODO: track selected blocks when in select mode
+// TODO: click a color to change selection to that color
+// TODO: delete selection of blocks with del key
+// TODO: drag build to build multiple blocks at once
+// TODO: preview the blocks before they're built
 
 fn main() {
     App::new()
