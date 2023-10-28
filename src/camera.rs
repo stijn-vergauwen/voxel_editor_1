@@ -4,7 +4,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
-use crate::world::WorldSettings;
+use crate::world::{coordinates::Coordinate, WorldSettings};
 
 use self::building::CameraBuildingPlugin;
 
@@ -75,8 +75,8 @@ impl Default for CameraInteraction {
 #[derive(Clone, Copy, Debug)]
 struct TargetBlock {
     normal: Vec3,
-    in_position: Vec3,
-    out_position: Vec3,
+    in_coord: Coordinate,
+    out_coord: Coordinate,
 }
 
 impl TargetBlock {
@@ -84,13 +84,13 @@ impl TargetBlock {
         let point = hit.point;
         let normal = hit.normal;
 
-        let in_position = ((point / block_scale) - normal / 2.0).round() * block_scale;
-        let out_position = ((point / block_scale) + normal / 2.0).round() * block_scale;
+        let in_position = (point / block_scale - normal / 2.0).round();
+        let out_position = (point / block_scale + normal / 2.0).round();
 
         Self {
             normal,
-            in_position,
-            out_position,
+            in_coord: Coordinate::from(in_position),
+            out_coord: Coordinate::from(out_position),
         }
     }
 }
@@ -129,18 +129,19 @@ fn update_interaction_target(
     }
 }
 
-fn draw_target_block_gizmos(cameras: Query<&CameraInteraction>, mut gizmos: Gizmos) {
+fn draw_target_block_gizmos(
+    cameras: Query<&CameraInteraction>,
+    mut gizmos: Gizmos,
+    world_settings: Res<WorldSettings>,
+) {
     for camera in cameras.iter() {
         if let Some(target) = &camera.target {
-            gizmos.cuboid(
-                Transform::from_translation(target.in_position),
-                Color::WHITE,
-            );
-            gizmos.cuboid(
-                Transform::from_translation(target.out_position),
-                Color::CYAN,
-            );
-            gizmos.ray(target.in_position, target.normal, Color::BLUE);
+            let in_position = world_settings.coordinate_to_position(target.in_coord);
+            let out_position = world_settings.coordinate_to_position(target.out_coord);
+
+            gizmos.cuboid(Transform::from_translation(in_position), Color::WHITE);
+            gizmos.cuboid(Transform::from_translation(out_position), Color::CYAN);
+            gizmos.ray(in_position, target.normal, Color::BLUE);
         }
     }
 }
@@ -178,9 +179,11 @@ fn cast_ray_to_target_block(
 mod tests {
     use bevy_rapier3d::rapier::prelude::FeatureId;
 
+    use crate::world::coordinates::Coordinate;
+
     use super::*;
 
-    // TODO: replace in & out positions with coordinates, this data points to block coordinates not just position.
+    // TODO: replace in & out positions with coordinates, this data points to block coordinates not just position. <- doing
 
     #[test]
     fn can_create_ray_hit() {
@@ -218,39 +221,39 @@ mod tests {
     }
 
     #[test]
-    fn target_block_calculates_in_position() {
+    fn target_block_calculates_in_coord() {
         let block_scale = 1.0;
         let target_block = TargetBlock::from_raycast(
             RayHit::new(Vec3::new(1.5, 0.0, 1.8), Vec3::X, 2.0),
             block_scale,
         );
 
-        assert_eq!(target_block.in_position, Vec3::new(1.0, 0.0, 2.0));
+        assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 2));
 
         let target_block = TargetBlock::from_raycast(
             RayHit::new(Vec3::new(7.8, 3.4, 7.2), Vec3::Y, 1.0),
             block_scale,
         );
 
-        assert_eq!(target_block.in_position, Vec3::new(8.0, 3.0, 7.0));
+        assert_eq!(target_block.in_coord, Coordinate::new(8, 3, 7));
     }
 
     #[test]
-    fn target_block_calculates_out_position() {
+    fn target_block_calculates_out_coord() {
         let block_scale = 1.0;
         let target_block = TargetBlock::from_raycast(
             RayHit::new(Vec3::new(3.5, 0.0, 2.8), Vec3::X, 2.0),
             block_scale,
         );
 
-        assert_eq!(target_block.out_position, Vec3::new(4.0, 0.0, 3.0));
+        assert_eq!(target_block.out_coord, Coordinate::new(4, 0, 3));
 
         let target_block = TargetBlock::from_raycast(
             RayHit::new(Vec3::new(5.8, 2.4, 3.2), Vec3::Y, 1.0),
             block_scale,
         );
 
-        assert_eq!(target_block.out_position, Vec3::new(6.0, 3.0, 3.0));
+        assert_eq!(target_block.out_coord, Coordinate::new(6, 3, 3));
     }
 
     #[test]
@@ -260,15 +263,15 @@ mod tests {
 
         let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
 
-        assert_eq!(target_block.in_position, Vec3::new(2.0, 0.0, 0.0));
-        assert_eq!(target_block.out_position, Vec3::new(4.0, 0.0, 0.0));
+        assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 0));
+        assert_eq!(target_block.out_coord, Coordinate::new(2, 0, 0));
 
         let ray_hit = RayHit::new(Vec3::new(4.0, 0.0, 2.0), Vec3::X, 1.0);
         let block_scale = 3.5;
 
         let target_block = TargetBlock::from_raycast(ray_hit, block_scale);
 
-        assert_eq!(target_block.in_position, Vec3::new(3.5, 0.0, 3.5));
-        assert_eq!(target_block.out_position, Vec3::new(7.0, 0.0, 3.5));
+        assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 1));
+        assert_eq!(target_block.out_coord, Coordinate::new(2, 0, 1));
     }
 }
