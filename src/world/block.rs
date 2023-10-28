@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Clone, Copy, PartialEq, Debug, Reflect, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub struct Block {
     pub color: Color,
 }

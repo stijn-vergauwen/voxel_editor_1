@@ -7,7 +7,7 @@ mod interaction;
 use bevy::prelude::*;
 
 use self::{
-    block::Block, builder::WorldBuilderPlugin, chunk::Chunk, coordinates::Coordinate,
+    builder::WorldBuilderPlugin, chunk::WorldChunkPlugin, coordinates::Coordinate,
     interaction::WorldInteractionPlugin,
 };
 
@@ -16,9 +16,7 @@ pub struct WorldPlugin;
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(WorldSettings::new(16, 1.0))
-            .register_type::<Chunk>()
-            .register_type::<Block>()
-            .add_plugins((WorldInteractionPlugin, WorldBuilderPlugin));
+            .add_plugins((WorldInteractionPlugin, WorldBuilderPlugin, WorldChunkPlugin));
     }
 }
 
@@ -56,5 +54,3 @@ impl WorldSettings {
     //     )
     // }
 }
-
-// TODO: event for when a chunk needs to update

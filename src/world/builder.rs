@@ -1,14 +1,18 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use super::{block::Block, chunk::Chunk, WorldSettings};
+use super::{
+    block::Block,
+    chunk::{Chunk, OnRedrawChunkRequest},
+    WorldSettings,
+};
 
 pub struct WorldBuilderPlugin;
 
 impl Plugin for WorldBuilderPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_chunk)
-            .add_systems(Update, redraw_changed_chunks);
+            .add_systems(Update, redraw_requested_chunks);
     }
 }
 
@@ -22,27 +26,32 @@ fn spawn_chunk(mut commands: Commands, world_settings: Res<WorldSettings>) {
     ));
 }
 
-fn redraw_changed_chunks(
+fn redraw_requested_chunks(
     mut commands: Commands,
-    mut chunks: Query<(&mut Chunk, Entity), Changed<Chunk>>,
+    chunks: Query<&Chunk>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     world_settings: Res<WorldSettings>,
+    mut chunk_redraw_requests: EventReader<OnRedrawChunkRequest>,
 ) {
-    for (mut chunk, chunk_entity) in chunks.iter_mut().filter(|(chunk, _)| chunk.data_changed) {
-        // TODO: split calculations to function
-        // Remove blocks
-        commands.entity(chunk_entity).despawn_descendants();
+    for request in chunk_redraw_requests.iter() {
+        let chunk_entity = request.chunk;
 
-        let blocks = calculate_blocks_spawn_data(&chunk, &world_settings);
-        chunk.data_changed = false;
+        if let Ok(chunk) = chunks.get(chunk_entity) {
+            // TODO: split calculations to function
 
-        // Spawn blocks
-        let mesh_handle = meshes.add(shape::Cube::new(0.9).into());
+            // Remove blocks
+            commands.entity(chunk_entity).despawn_descendants();
 
-        let block_entities = spawn_chunk_blocks(&mut commands, blocks, mesh_handle, &mut materials);
+            // Spawn blocks
+            let blocks = calculate_blocks_spawn_data(&chunk, &world_settings);
+            let mesh_handle = meshes.add(shape::Cube::new(0.9).into());
 
-        commands.entity(chunk_entity).push_children(&block_entities);
+            let block_entities =
+                spawn_chunk_blocks(&mut commands, blocks, mesh_handle, &mut materials);
+
+            commands.entity(chunk_entity).push_children(&block_entities);
+        }
     }
 }
 

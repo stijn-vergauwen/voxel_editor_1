@@ -2,11 +2,19 @@ use bevy::prelude::*;
 
 use super::{block::Block, coordinates::Coordinate};
 
-#[derive(Component, Reflect, Default, Clone, Debug)]
-#[reflect(Component)]
+pub struct WorldChunkPlugin;
+
+impl Plugin for WorldChunkPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<OnRedrawChunkRequest>()
+            .add_systems(Update, check_chunks_that_changed);
+    }
+}
+
+#[derive(Component, Default, Clone, Debug)]
 pub struct Chunk {
     blocks: Vec<Option<Block>>,
-    pub data_changed: bool,
+    data_changed: bool,
     size: usize,
 }
 
@@ -73,6 +81,27 @@ impl Chunk {
         let x = y_remainder;
 
         Coordinate::new(x, y, z)
+    }
+}
+
+#[derive(Event)]
+pub struct OnRedrawChunkRequest {
+    pub chunk: Entity,
+}
+
+impl OnRedrawChunkRequest {
+    fn new(chunk: Entity) -> Self {
+        Self { chunk }
+    }
+}
+
+fn check_chunks_that_changed(
+    mut chunks: Query<(&mut Chunk, Entity)>,
+    mut on_redraw_request: EventWriter<OnRedrawChunkRequest>,
+) {
+    for (mut chunk, entity) in chunks.iter_mut().filter(|(chunk, _)| chunk.data_changed) {
+        on_redraw_request.send(OnRedrawChunkRequest::new(entity));
+        chunk.data_changed = false;
     }
 }
 
