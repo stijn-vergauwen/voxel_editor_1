@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::prelude::Vec3;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Direction {
@@ -68,5 +68,33 @@ impl From<Vec3> for Direction {
 impl From<Direction> for Vec3 {
     fn from(value: Direction) -> Self {
         value.to_vector()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn can_create_direction_from_vector() {
+        let direction = Direction::from_vector(Vec3::new(1.0, 0.0, 0.0));
+
+        assert_eq!(direction.x, 1.0);
+        assert_eq!(direction.y, 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn panics_on_invalid_input() {
+        Direction::new(1.0, 0.2, 0.0);
+    }
+
+    #[test]
+    fn can_get_vector_from_direction() {
+        let direction = Direction::Y;
+
+        let result = direction.to_vector();
+
+        assert_eq!(result, Vec3::Y);
     }
 }
