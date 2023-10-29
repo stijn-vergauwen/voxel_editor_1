@@ -1,15 +1,14 @@
 pub mod block;
 mod builder;
 pub mod chunk;
-pub mod coordinates;
 mod interaction;
 
 use bevy::prelude::*;
 
 use self::{
-    builder::WorldBuilderPlugin, chunk::WorldChunkPlugin, coordinates::Coordinate,
-    interaction::WorldInteractionPlugin,
+    builder::WorldBuilderPlugin, chunk::WorldChunkPlugin, interaction::WorldInteractionPlugin,
 };
+use crate::newtypes::coordinate::Coordinate;
 
 pub struct WorldPlugin;
 

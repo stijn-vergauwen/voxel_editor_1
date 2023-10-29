@@ -5,6 +5,8 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
+use crate::newtypes::direction::Direction;
+
 use self::{
     building::CameraBuildingPlugin,
     target::{CameraTargetPlugin, OnTargetBlockChanged, TargetBlock},
@@ -20,16 +22,14 @@ impl Plugin for EditorCameraPlugin {
     }
 }
 
-// TODO: Select blocks by clicking on them
-
 struct RayHit {
     point: Vec3,
-    normal: Vec3,
+    normal: Direction,
 }
 
 impl RayHit {
     #[allow(unused)]
-    fn new(point: Vec3, normal: Vec3) -> Self {
+    fn new(point: Vec3, normal: Direction) -> Self {
         Self { point, normal }
     }
 }
@@ -38,7 +38,7 @@ impl From<RayIntersection> for RayHit {
     fn from(value: RayIntersection) -> Self {
         Self {
             point: value.point,
-            normal: value.normal,
+            normal: Direction::from_vector(value.normal),
         }
     }
 }
@@ -108,14 +108,16 @@ fn get_cursor_as_ray(
 mod tests {
     use bevy_rapier3d::rapier::prelude::FeatureId;
 
+    use crate::newtypes::direction::Direction;
+
     use super::*;
 
     #[test]
     fn can_create_ray_hit() {
-        let ray_hit = RayHit::new(Vec3::new(2.0, 2.0, 2.0), Vec3::Y);
+        let ray_hit = RayHit::new(Vec3::new(2.0, 2.0, 2.0), Direction::Y);
 
         assert_eq!(ray_hit.point, Vec3::new(2.0, 2.0, 2.0));
-        assert_eq!(ray_hit.normal, Vec3::Y);
+        assert_eq!(ray_hit.normal, Direction::Y);
     }
 
     #[test]
@@ -130,6 +132,6 @@ mod tests {
         let ray_hit = RayHit::from(intersection);
 
         assert_eq!(ray_hit.point, Vec3::new(1.5, 0.0, 1.8));
-        assert_eq!(ray_hit.normal, Vec3::X);
+        assert_eq!(ray_hit.normal, Direction::X);
     }
 }

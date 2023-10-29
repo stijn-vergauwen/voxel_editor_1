@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use flying_camera::FlyingCamera;
 
-use crate::{
-    color_library::ColorLibrary,
-    world::{block::Block, coordinates::Coordinate},
-};
+use crate::{color_library::ColorLibrary, newtypes::coordinate::Coordinate, world::block::Block};
 
 use super::{CameraInteraction, TargetBlock};
 

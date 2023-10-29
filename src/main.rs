@@ -2,6 +2,7 @@ mod camera;
 mod color_library;
 mod scene_loader;
 mod world;
+pub mod newtypes;
 
 use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -36,7 +37,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: newtype for directions, confined to normalized values.
 // TODO: module for mouse interaction
 // TODO: event for mouse click
 // TODO: check if ui is clicked or not

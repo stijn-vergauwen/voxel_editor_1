@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{block::Block, coordinates::Coordinate};
+use super::block::Block;
+use crate::newtypes::coordinate::Coordinate;
 
 pub struct WorldChunkPlugin;
 
