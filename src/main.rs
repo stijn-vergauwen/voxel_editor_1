@@ -1,14 +1,16 @@
 mod camera;
 mod color_library;
+mod mouse_interaction;
+pub mod newtypes;
 mod scene_loader;
 mod world;
-pub mod newtypes;
 
 use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
 use color_library::ColorLibraryPlugin;
+use mouse_interaction::MouseInteractionPlugin;
 use scene_loader::SceneLoaderPlugin;
 use world::WorldPlugin;
 
@@ -37,9 +39,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: module for mouse interaction
-// TODO: event for mouse click
-// TODO: check if ui is clicked or not
 // TODO: block world interaction when ui is clicked
 // TODO: a build & a select mode
 // TODO: track selected blocks when in select mode
@@ -59,6 +58,7 @@ fn main() {
             WorldPlugin,
             ColorLibraryPlugin,
             SceneLoaderPlugin,
+            MouseInteractionPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)

@@ -5,7 +5,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
-use crate::newtypes::direction::Direction;
+use crate::{mouse_interaction::MouseInteraction, newtypes::direction::Direction};
 
 use self::{
     building::CameraBuildingPlugin,
@@ -60,16 +60,20 @@ impl Default for CameraInteraction {
     }
 }
 
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Flying camera"),
-        Camera3dBundle {
-            transform: Transform::from_xyz(-6.0, 6.0, 12.0),
-            ..Default::default()
-        },
-        FlyingCameraBundle::default(),
-        CameraInteraction::default(),
-    ));
+fn spawn_camera(mut commands: Commands, mut mouse_interaction: ResMut<MouseInteraction>) {
+    let camera_entity = commands
+        .spawn((
+            Name::new("Flying camera"),
+            Camera3dBundle {
+                transform: Transform::from_xyz(-6.0, 6.0, 12.0),
+                ..Default::default()
+            },
+            FlyingCameraBundle::default(),
+            CameraInteraction::default(),
+        ))
+        .id();
+
+    mouse_interaction.set_active_camera(camera_entity);
 }
 
 fn update_cursor_ray(
