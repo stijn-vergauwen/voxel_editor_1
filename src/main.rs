@@ -39,7 +39,7 @@ use world::WorldPlugin;
 
 */
 
-// TODO: block world interaction when ui is clicked
+// TODO: block world interaction when ui is clicked <- doing
 // TODO: a build & a select mode
 // TODO: track selected blocks when in select mode
 // TODO: click a color to change selection to that color

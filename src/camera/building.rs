@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use flying_camera::FlyingCamera;
 
-use crate::{color_library::ColorLibrary, newtypes::coordinate::Coordinate, world::block::Block};
+use crate::{
+    color_library::ColorLibrary, mouse_interaction::OnMousePressed,
+    newtypes::coordinate::Coordinate, world::block::Block,
+};
 
 use super::{CameraInteraction, TargetBlock};
 
@@ -11,7 +14,7 @@ impl Plugin for CameraBuildingPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnPlaceBlockRequest>()
             .add_event::<OnRemoveBlockRequest>()
-            .add_systems(Update, (send_build_event, send_remove_event));
+            .add_systems(Update, (handle_build_input, send_remove_event));
     }
 }
 
@@ -41,23 +44,32 @@ impl OnRemoveBlockRequest {
     }
 }
 
-fn send_build_event(
-    mut place_event: EventWriter<OnPlaceBlockRequest>,
-    cameras: Query<(&CameraInteraction, &FlyingCamera)>,
-    mouse_input: Res<Input<MouseButton>>,
+fn handle_build_input(
+    mut on_mouse_pressed: EventReader<OnMousePressed>,
     key_input: Res<Input<KeyCode>>,
+    cameras: Query<(&CameraInteraction, &FlyingCamera)>,
     color_library: Res<ColorLibrary>,
+    mut place_event: EventWriter<OnPlaceBlockRequest>,
 ) {
-    if let Some(target) = get_valid_interaction_target(&cameras) {
-        if mouse_input.just_pressed(BUILD_BUTTON) && !key_input.pressed(REMOVE_KEY) {
-            place_event.send(OnPlaceBlockRequest::new(
-                color_library
-                    .selected_color()
-                    .map(|color| Block::new(color)),
-                target.out_coord,
-            ));
+    for event in on_mouse_pressed.iter() {
+        if let Some(target) = get_valid_interaction_target(&cameras) {
+            let pressing_correct_keys =
+                event.button == BUILD_BUTTON && !key_input.pressed(REMOVE_KEY);
+
+            if !event.on_ui && pressing_correct_keys {
+                send_place_block_request(&mut place_event, &color_library, target);
+            }
         }
     }
+}
+
+fn send_place_block_request(place_event: &mut EventWriter<OnPlaceBlockRequest>, color_library: &ColorLibrary, target: TargetBlock) {
+    place_event.send(OnPlaceBlockRequest::new(
+        color_library
+            .selected_color()
+            .map(|color| Block::new(color)),
+        target.out_coord,
+    ));
 }
 
 fn send_remove_event(

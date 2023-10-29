@@ -17,6 +17,8 @@ impl Plugin for MouseInteractionPlugin {
     }
 }
 
+// TODO: calculate and store camera raycast in mouseinteraction resource (instead of camera module)
+
 #[derive(Resource)]
 pub struct MouseInteraction {
     active_camera: Option<Entity>,
