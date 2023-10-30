@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use crate::{
+    mouse_interaction::MouseInteraction,
     newtypes::{coordinate::Coordinate, direction::Direction},
     world::WorldSettings,
 };
@@ -56,13 +57,15 @@ impl OnTargetBlockChanged {
 
 fn update_interaction_target(
     rapier_context: Res<RapierContext>,
+    mouse_interaction: Res<MouseInteraction>,
     cameras: Query<(&CameraInteraction, Entity)>,
     world_settings: Res<WorldSettings>,
     mut on_target_changed: EventWriter<OnTargetBlockChanged>,
 ) {
     for (interaction, entity) in cameras.iter() {
         let block_scale = world_settings.block_scale();
-        let target_block = cast_ray_to_target_block(&rapier_context, &interaction, block_scale);
+        let target_block =
+            cast_ray_to_target_block(&rapier_context, &mouse_interaction, block_scale);
 
         if interaction.target != target_block {
             on_target_changed.send(OnTargetBlockChanged::new(entity, target_block));
@@ -91,15 +94,15 @@ fn draw_target_block_gizmos(
 
 fn cast_ray_to_target_block(
     rapier: &RapierContext,
-    camera: &CameraInteraction,
+    mouse_interaction: &MouseInteraction,
     block_scale: f32,
 ) -> Option<TargetBlock> {
-    let ray = camera.cursor_ray?;
+    let ray = mouse_interaction.ray_through_cursor()?;
 
     let intersection = rapier.cast_ray_and_get_normal(
         ray.origin,
         ray.direction,
-        camera.ray_distance,
+        mouse_interaction.max_interaction_distance(),
         false,
         QueryFilter::new(),
     );
@@ -127,13 +130,17 @@ mod tests {
     #[test]
     fn target_block_calculates_in_coord() {
         let block_scale = 1.0;
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(1.5, 0.0, 1.8), Direction::X), block_scale);
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(1.5, 0.0, 1.8), Direction::X),
+            block_scale,
+        );
 
         assert_eq!(target_block.in_coord, Coordinate::new(1, 0, 2));
 
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(7.8, 3.4, 7.2), Direction::Y), block_scale);
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(7.8, 3.4, 7.2), Direction::Y),
+            block_scale,
+        );
 
         assert_eq!(target_block.in_coord, Coordinate::new(8, 3, 7));
     }
@@ -141,13 +148,17 @@ mod tests {
     #[test]
     fn target_block_calculates_out_coord() {
         let block_scale = 1.0;
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(3.5, 0.0, 2.8), Direction::X), block_scale);
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(3.5, 0.0, 2.8), Direction::X),
+            block_scale,
+        );
 
         assert_eq!(target_block.out_coord, Coordinate::new(4, 0, 3));
 
-        let target_block =
-            TargetBlock::from_raycast(RayHit::new(Vec3::new(5.8, 2.4, 3.2), Direction::Y), block_scale);
+        let target_block = TargetBlock::from_raycast(
+            RayHit::new(Vec3::new(5.8, 2.4, 3.2), Direction::Y),
+            block_scale,
+        );
 
         assert_eq!(target_block.out_coord, Coordinate::new(6, 3, 3));
     }

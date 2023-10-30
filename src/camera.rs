@@ -1,7 +1,7 @@
 pub mod building;
 mod target;
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
@@ -18,7 +18,7 @@ impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((FlyingCameraPlugin, CameraBuildingPlugin, CameraTargetPlugin))
             .add_systems(Startup, spawn_camera)
-            .add_systems(Update, (update_cursor_ray, update_camera_target));
+            .add_systems(Update, update_camera_target);
     }
 }
 
@@ -45,17 +45,13 @@ impl From<RayIntersection> for RayHit {
 
 #[derive(Component, Debug)]
 struct CameraInteraction {
-    ray_distance: f32,
-    cursor_ray: Option<Ray>,
     target: Option<TargetBlock>,
 }
 
 impl Default for CameraInteraction {
     fn default() -> Self {
         Self {
-            cursor_ray: None,
             target: None,
-            ray_distance: 20.0,
         }
     }
 }
@@ -76,17 +72,6 @@ fn spawn_camera(mut commands: Commands, mut mouse_interaction: ResMut<MouseInter
     mouse_interaction.set_active_camera(camera_entity);
 }
 
-fn update_cursor_ray(
-    mut cameras: Query<(&mut CameraInteraction, &Camera, &GlobalTransform)>,
-    window: Query<&Window, With<PrimaryWindow>>,
-) {
-    if let Ok(window) = window.get_single() {
-        for (mut interaction, camera, transform) in cameras.iter_mut() {
-            interaction.cursor_ray = get_cursor_as_ray(camera, transform, window);
-        }
-    }
-}
-
 fn update_camera_target(
     mut cameras: Query<&mut CameraInteraction>,
     mut on_target_changed: EventReader<OnTargetBlockChanged>,
@@ -98,15 +83,6 @@ fn update_camera_target(
     }
 }
 
-// Utilities
-
-fn get_cursor_as_ray(
-    camera: &Camera,
-    global_transform: &GlobalTransform,
-    window: &Window,
-) -> Option<Ray> {
-    camera.viewport_to_world(global_transform, window.cursor_position()?)
-}
 
 #[cfg(test)]
 mod tests {
