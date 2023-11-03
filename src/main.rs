@@ -1,5 +1,6 @@
 mod camera;
 mod color_library;
+mod editor_modes;
 mod mouse_interaction;
 pub mod newtypes;
 mod scene_loader;
@@ -10,6 +11,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
 use color_library::ColorLibraryPlugin;
+use editor_modes::EditorModesPlugin;
 use mouse_interaction::MouseInteractionPlugin;
 use scene_loader::SceneLoaderPlugin;
 use world::WorldPlugin;
@@ -39,7 +41,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: a build & a select mode
 // TODO: track selected blocks when in select mode
 // TODO: click a color to change selection to that color
 // TODO: delete selection of blocks with del key
@@ -58,6 +59,7 @@ fn main() {
             ColorLibraryPlugin,
             SceneLoaderPlugin,
             MouseInteractionPlugin,
+            EditorModesPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)

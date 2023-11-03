@@ -12,12 +12,12 @@ impl Plugin for MouseInteractionPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(MouseInteraction::default())
             .add_event::<OnMousePressed>()
+            .add_event::<OnMouseTargetChanged>()
             .add_systems(
                 Update,
                 (
                     update_mouse_on_ui,
                     send_mouse_pressed_events,
-                    test_read_events,
                     update_interaction_ray,
                     update_mouse_target,
                     draw_target_block_gizmos,
@@ -25,8 +25,6 @@ impl Plugin for MouseInteractionPlugin {
             );
     }
 }
-
-// TODO: use explicit method ordering
 
 #[derive(Resource)]
 pub struct MouseInteraction {
@@ -143,12 +141,6 @@ fn send_mouse_pressed_events(
             on_ui: mouse_interaction.mouse_on_ui,
             target: mouse_interaction.target,
         });
-    }
-}
-
-fn test_read_events(mut on_mouse_pressed: EventReader<OnMousePressed>) {
-    for event in on_mouse_pressed.iter() {
-        println!("{:?}", event);
     }
 }
 
