@@ -1,12 +1,11 @@
 use bevy::prelude::*;
-use flying_camera::FlyingCamera;
 
 use crate::{
-    color_library::ColorLibrary, mouse_interaction::OnMousePressed,
-    newtypes::coordinate::Coordinate, world::block::Block,
+    color_library::ColorLibrary,
+    mouse_interaction::{MouseTarget, OnMousePressed},
+    newtypes::coordinate::Coordinate,
+    world::block::Block,
 };
-
-use super::{CameraInteraction, TargetBlock};
 
 pub struct CameraBuildingPlugin;
 
@@ -47,18 +46,16 @@ impl OnRemoveBlockRequest {
 fn handle_build_input(
     mut on_mouse_pressed: EventReader<OnMousePressed>,
     key_input: Res<Input<KeyCode>>,
-    cameras: Query<(&CameraInteraction, &FlyingCamera)>,
     color_library: Res<ColorLibrary>,
     mut place_event: EventWriter<OnPlaceBlockRequest>,
 ) {
     for mouse_pressed in on_mouse_pressed.iter() {
-        if let Some(target) = get_valid_interaction_target(&cameras) {
-            let pressing_correct_keys =
-                mouse_pressed.button == BUILD_BUTTON && !key_input.pressed(REMOVE_KEY);
+        if mouse_pressed.button != BUILD_BUTTON || key_input.pressed(REMOVE_KEY) {
+            continue;
+        }
 
-            if !mouse_pressed.on_ui && pressing_correct_keys {
-                send_place_block_request(&mut place_event, &color_library, target);
-            }
+        if let Some(target) = mouse_pressed.target {
+            send_place_block_request(&mut place_event, &color_library, target);
         }
     }
 }
@@ -66,7 +63,7 @@ fn handle_build_input(
 fn send_place_block_request(
     place_event: &mut EventWriter<OnPlaceBlockRequest>,
     color_library: &ColorLibrary,
-    target: TargetBlock,
+    target: MouseTarget,
 ) {
     place_event.send(OnPlaceBlockRequest::new(
         color_library
@@ -78,36 +75,23 @@ fn send_place_block_request(
 
 fn handle_remove_input(
     mut on_mouse_pressed: EventReader<OnMousePressed>,
-    cameras: Query<(&CameraInteraction, &FlyingCamera)>,
     key_input: Res<Input<KeyCode>>,
     mut remove_event: EventWriter<OnRemoveBlockRequest>,
 ) {
     for mouse_pressed in on_mouse_pressed.iter() {
-        if let Some(target) = get_valid_interaction_target(&cameras) {
-            let pressing_correct_keys =
-                mouse_pressed.button == BUILD_BUTTON && key_input.pressed(REMOVE_KEY);
+        if mouse_pressed.button != BUILD_BUTTON || !key_input.pressed(REMOVE_KEY) {
+            continue;
+        }
 
-            if !mouse_pressed.on_ui && pressing_correct_keys {
-                send_remove_block_request(&mut remove_event, target);
-            }
+        if let Some(target) = mouse_pressed.target {
+            send_remove_block_request(&mut remove_event, target);
         }
     }
 }
 
 fn send_remove_block_request(
     remove_event: &mut EventWriter<OnRemoveBlockRequest>,
-    target: TargetBlock,
+    target: MouseTarget,
 ) {
     remove_event.send(OnRemoveBlockRequest::new(Coordinate::from(target.in_coord)));
-}
-
-fn get_valid_interaction_target(
-    camera_query: &Query<(&CameraInteraction, &FlyingCamera)>,
-) -> Option<TargetBlock> {
-    if let Ok((camera_interaction, camera)) = camera_query.get_single() {
-        if !camera.enabled {
-            return camera_interaction.target;
-        }
-    }
-    None
 }
