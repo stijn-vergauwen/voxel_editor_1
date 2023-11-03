@@ -26,7 +26,6 @@ impl Plugin for MouseInteractionPlugin {
     }
 }
 
-// TODO: event for target block changed
 // TODO: use explicit method ordering
 
 #[derive(Resource)]
@@ -88,6 +87,11 @@ pub struct OnMousePressed {
     pub target: Option<MouseTarget>,
 }
 
+#[derive(Event, Clone, Copy, Debug)]
+pub struct OnMouseTargetChanged {
+    pub target: Option<MouseTarget>,
+}
+
 fn update_mouse_on_ui(mut mouse_interaction: ResMut<MouseInteraction>, nodes: Query<&Interaction>) {
     mouse_interaction.mouse_on_ui = nodes.iter().any(|interaction| {
         *interaction == Interaction::Hovered || *interaction == Interaction::Pressed
@@ -110,8 +114,9 @@ fn update_interaction_ray(
 
 fn update_mouse_target(
     rapier_context: Res<RapierContext>,
-    mut mouse_interaction: ResMut<MouseInteraction>,
     world_settings: Res<WorldSettings>,
+    mut mouse_interaction: ResMut<MouseInteraction>,
+    mut on_target_changed: EventWriter<OnMouseTargetChanged>,
 ) {
     let target_block = calculate_mouse_target(
         &rapier_context,
@@ -119,7 +124,12 @@ fn update_mouse_target(
         world_settings.block_scale(),
     );
 
-    mouse_interaction.target = target_block;
+    if mouse_interaction.target != target_block {
+        on_target_changed.send(OnMouseTargetChanged {
+            target: target_block,
+        });
+        mouse_interaction.target = target_block;
+    }
 }
 
 fn send_mouse_pressed_events(
