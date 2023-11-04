@@ -2,10 +2,12 @@ use bevy::prelude::*;
 
 use crate::{
     game_systems::color_library::ColorLibrary,
-    player::mouse_interaction::{MouseTarget, OnMousePressed},
     newtypes::coordinate::Coordinate,
+    player::mouse_interaction::{MouseTarget, OnMousePressed},
     world::block::Block,
 };
+
+use super::EditorMode;
 
 pub struct BuildModePlugin;
 
@@ -13,7 +15,10 @@ impl Plugin for BuildModePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnPlaceBlockRequest>()
             .add_event::<OnRemoveBlockRequest>()
-            .add_systems(Update, (handle_build_input, handle_remove_input));
+            .add_systems(
+                Update,
+                (handle_build_input, handle_remove_input).run_if(in_state(EditorMode::Build)),
+            );
     }
 }
 
