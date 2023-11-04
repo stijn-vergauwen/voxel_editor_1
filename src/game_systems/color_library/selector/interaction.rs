@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 
+use crate::game_systems::color_library::ColorLibrary;
+
 use super::SelectorButton;
-use crate::color_library::ColorLibrary;
 
 pub struct SelectorInteractionPlugin;
 

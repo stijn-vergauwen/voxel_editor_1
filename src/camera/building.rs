@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    color_library::ColorLibrary,
+    game_systems::color_library::ColorLibrary,
     mouse_interaction::{MouseTarget, OnMousePressed},
     newtypes::coordinate::Coordinate,
     world::block::Block,
