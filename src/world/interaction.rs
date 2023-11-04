@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::player::camera::building::{OnPlaceBlockRequest, OnRemoveBlockRequest};
+use crate::player::building::{OnPlaceBlockRequest, OnRemoveBlockRequest};
 
 use crate::world::chunk::Chunk;
 
