@@ -7,9 +7,9 @@ use crate::{
     world::block::Block,
 };
 
-pub struct CameraBuildingPlugin;
+pub struct BuildModePlugin;
 
-impl Plugin for CameraBuildingPlugin {
+impl Plugin for BuildModePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnPlaceBlockRequest>()
             .add_event::<OnRemoveBlockRequest>()

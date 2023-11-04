@@ -1,13 +1,19 @@
+pub mod build;
+pub mod select;
+
 use bevy::prelude::*;
+
+use self::build::BuildModePlugin;
 
 pub struct EditorModesPlugin;
 
 impl Plugin for EditorModesPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(CurrentEditorMode {
-            mode: EditorMode::Build,
-        })
-        .add_systems(Update, switch_editor_mode);
+        app.add_plugins(BuildModePlugin)
+            .insert_resource(CurrentEditorMode {
+                mode: EditorMode::Build,
+            })
+            .add_systems(Update, switch_editor_mode);
     }
 }
 

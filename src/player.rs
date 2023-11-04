@@ -1,11 +1,12 @@
-pub mod building;
 pub mod camera;
 mod mouse_interaction;
+pub mod editor_modes;
 
 use bevy::prelude::*;
-use building::CameraBuildingPlugin;
 use camera::EditorCameraPlugin;
 use mouse_interaction::MouseInteractionPlugin;
+
+use self::editor_modes::EditorModesPlugin;
 
 pub struct PlayerPlugin;
 
@@ -14,7 +15,7 @@ impl Plugin for PlayerPlugin {
         app.add_plugins((
             EditorCameraPlugin,
             MouseInteractionPlugin,
-            CameraBuildingPlugin,
+            EditorModesPlugin,
         ));
     }
 }

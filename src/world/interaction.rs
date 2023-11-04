@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
-use crate::player::building::{OnPlaceBlockRequest, OnRemoveBlockRequest};
-
-use crate::world::chunk::Chunk;
+use crate::{
+    player::editor_modes::build::{OnPlaceBlockRequest, OnRemoveBlockRequest},
+    world::chunk::Chunk,
+};
 
 pub struct WorldInteractionPlugin;
 
