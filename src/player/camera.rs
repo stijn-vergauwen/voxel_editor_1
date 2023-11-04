@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
 use self::building::CameraBuildingPlugin;
-use crate::mouse_interaction::MouseInteraction;
+use crate::player::mouse_interaction::MouseInteraction;
 
 pub struct EditorCameraPlugin;
 

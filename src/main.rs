@@ -1,15 +1,12 @@
-mod camera;
-mod mouse_interaction;
 pub mod newtypes;
 mod world;
 pub mod game_systems;
+mod player;
 
 use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
-use camera::EditorCameraPlugin;
 use game_systems::GameSystemsPlugin;
-use mouse_interaction::MouseInteractionPlugin;
 use world::WorldPlugin;
 
 /* Standards to work towards in this project:
@@ -51,9 +48,7 @@ fn main() {
             RapierDebugRenderPlugin::default(),
             WorldInspectorPlugin::new(),
             GameSystemsPlugin,
-            EditorCameraPlugin,
             WorldPlugin,
-            MouseInteractionPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)
