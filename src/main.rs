@@ -1,7 +1,7 @@
 pub mod newtypes;
 mod world;
 pub mod game_systems;
-mod player;
+pub mod player;
 
 use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -35,8 +35,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: track selected blocks when in select mode
-// TODO: click a color to change selection to that color
 // TODO: delete selection of blocks with del key
 // TODO: drag build to build multiple blocks at once
 // TODO: preview the blocks before they're built

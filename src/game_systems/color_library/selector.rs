@@ -1,9 +1,9 @@
-pub mod interaction;
+mod interaction;
 
 use bevy::prelude::*;
 
-use self::interaction::{OnColorClicked, SelectorInteractionPlugin};
-use super::ColorLibrary;
+use self::interaction::SelectorInteractionPlugin;
+use super::{ColorLibrary, OnColorClicked};
 
 pub struct ColorSelectorPlugin;
 

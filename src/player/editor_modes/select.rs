@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    newtypes::coordinate::Coordinate, player::mouse_interaction::OnMousePressed,
-    world::WorldSettings,
+    game_systems::color_library::OnColorClicked,
+    newtypes::coordinate::Coordinate,
+    player::mouse_interaction::OnMousePressed,
+    world::{block::Block, chunk::Chunk, WorldSettings},
 };
 
 use super::EditorMode;
@@ -14,7 +16,12 @@ impl Plugin for SelectModePlugin {
         app.init_resource::<CurrentSelection>()
             .add_systems(
                 Update,
-                (handle_input, draw_current_selection).run_if(in_state(EditorMode::Select)),
+                (
+                    handle_input,
+                    draw_current_selection,
+                    apply_color_to_selection,
+                )
+                    .run_if(in_state(EditorMode::Select)),
             )
             .add_systems(OnExit(EditorMode::Select), clear_current_selection);
     }
@@ -48,6 +55,24 @@ fn toggle_coordinate_in_selection(coord: Coordinate, selection: &mut CurrentSele
         selection.coordinates = coordinates_iterator.filter(|item| *item != coord).collect();
     } else {
         selection.coordinates.push(coord);
+    }
+}
+
+fn apply_color_to_selection(
+    selection: Res<CurrentSelection>,
+    mut on_color_clicked: EventReader<OnColorClicked>,
+    mut chunks: Query<&mut Chunk>,
+) {
+    let mut chunk = chunks.single_mut();
+
+    for color_clicked in on_color_clicked.iter() {
+        let color = color_clicked.color;
+
+        for coord in selection.coordinates.iter() {
+            if chunk.get_block(*coord).is_some() {
+                chunk.set_block(*coord, Some(Block::new(color)));
+            }
+        }
     }
 }
 

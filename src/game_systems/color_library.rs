@@ -2,15 +2,21 @@ mod selector;
 
 use bevy::prelude::*;
 
-use self::selector::{interaction::OnColorClicked, ColorSelectorPlugin};
+use crate::player::editor_modes::EditorMode;
+
+use self::selector::ColorSelectorPlugin;
 
 pub struct ColorLibraryPlugin;
 
 impl Plugin for ColorLibraryPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(ColorSelectorPlugin)
+            .add_event::<OnColorClicked>()
             .insert_resource(ColorLibrary::with_default_colors())
-            .add_systems(Update, handle_color_clicked_events);
+            .add_systems(
+                Update,
+                switch_to_clicked_color.run_if(in_state(EditorMode::Build)),
+            );
     }
 }
 
@@ -80,7 +86,18 @@ impl ColorLibrary {
     }
 }
 
-fn handle_color_clicked_events(
+#[derive(Event)]
+pub struct OnColorClicked {
+    pub color: Color,
+}
+
+impl OnColorClicked {
+    pub fn new(color: Color) -> Self {
+        Self { color }
+    }
+}
+
+fn switch_to_clicked_color(
     mut on_clicked: EventReader<OnColorClicked>,
     mut color_library: ResMut<ColorLibrary>,
 ) {
