@@ -7,6 +7,7 @@ use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 use game_systems::GameSystemsPlugin;
+use player::PlayerPlugin;
 use world::WorldPlugin;
 
 /* Standards to work towards in this project:
@@ -49,6 +50,7 @@ fn main() {
             WorldInspectorPlugin::new(),
             GameSystemsPlugin,
             WorldPlugin,
+            PlayerPlugin,
         ))
         .add_systems(Startup, spawn_light)
         .add_systems(Update, window::close_on_esc)
