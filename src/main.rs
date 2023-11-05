@@ -35,7 +35,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: drag select blocks <- doing
 // TODO: drag build to build multiple blocks at once
 // TODO: preview the blocks before they're built
 // TODO: highlight selected blocks
