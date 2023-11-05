@@ -1,10 +1,10 @@
-mod selector;
+mod color_selector;
 
 use bevy::prelude::*;
 
 use crate::player::editor_modes::EditorMode;
 
-use self::selector::ColorSelectorPlugin;
+use self::color_selector::ColorSelectorPlugin;
 
 pub struct ColorLibraryPlugin;
 

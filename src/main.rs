@@ -35,9 +35,12 @@ use world::WorldPlugin;
 
 */
 
-// TODO: delete selection of blocks with del key
+// TODO: delete selection of blocks with del key <- doing
+// TODO: fix blocks being built even when clicking ui
+// TODO: drag select blocks
 // TODO: drag build to build multiple blocks at once
 // TODO: preview the blocks before they're built
+// TODO: highlight selected blocks
 
 fn main() {
     App::new()
