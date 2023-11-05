@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     game_systems::color_library::OnColorClicked,
     newtypes::coordinate::Coordinate,
-    player::mouse_interaction::OnMousePressed,
+    player::mouse_interaction::mouse_events::OnMousePressed,
     world::{block::Block, chunk::Chunk, WorldSettings},
 };
 

@@ -1,22 +1,20 @@
+pub mod mouse_events;
 pub mod mouse_target;
 
 use bevy::prelude::*;
 
-use self::mouse_target::MouseTarget;
+use self::{
+    mouse_events::MouseEventsPlugin,
+    mouse_target::{MouseTarget, MouseTargetPlugin},
+};
 
 pub struct MouseInteractionPlugin;
 
 impl Plugin for MouseInteractionPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(MouseInteraction::default())
-            .add_event::<OnMousePressed>()
-            .add_systems(
-                Update,
-                (
-                    update_mouse_on_ui,
-                    send_mouse_pressed_events,
-                ),
-            );
+        app.add_plugins((MouseTargetPlugin, MouseEventsPlugin))
+            .insert_resource(MouseInteraction::default())
+            .add_systems(Update, update_mouse_on_ui);
     }
 }
 
@@ -27,6 +25,12 @@ pub struct MouseInteraction {
     max_interaction_distance: f32,
     ray_through_cursor: Option<Ray>,
     target: Option<MouseTarget>,
+}
+
+impl MouseInteraction {
+    pub fn set_active_camera(&mut self, camera_entity: Entity) {
+        self.active_camera = Some(camera_entity);
+    }
 }
 
 impl Default for MouseInteraction {
@@ -41,36 +45,8 @@ impl Default for MouseInteraction {
     }
 }
 
-impl MouseInteraction {
-    pub fn set_active_camera(&mut self, camera_entity: Entity) {
-        self.active_camera = Some(camera_entity);
-    }
-}
-
-
-#[derive(Event, Clone, Copy, Debug)]
-pub struct OnMousePressed {
-    pub button: MouseButton,
-    pub on_ui: bool,
-    pub target: Option<MouseTarget>,
-}
-
 fn update_mouse_on_ui(mut mouse_interaction: ResMut<MouseInteraction>, nodes: Query<&Interaction>) {
     mouse_interaction.mouse_on_ui = nodes.iter().any(|interaction| {
         *interaction == Interaction::Hovered || *interaction == Interaction::Pressed
     });
-}
-
-fn send_mouse_pressed_events(
-    mouse_interaction: Res<MouseInteraction>,
-    input: Res<Input<MouseButton>>,
-    mut on_mouse_pressed: EventWriter<OnMousePressed>,
-) {
-    for press in input.get_just_pressed() {
-        on_mouse_pressed.send(OnMousePressed {
-            button: *press,
-            on_ui: mouse_interaction.mouse_on_ui,
-            target: mouse_interaction.target,
-        });
-    }
 }
