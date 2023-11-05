@@ -159,6 +159,10 @@ fn calculate_mouse_target(
     mouse_interaction: &MouseInteraction,
     block_scale: f32,
 ) -> Option<MouseTarget> {
+    if mouse_interaction.mouse_on_ui {
+        return None;
+    }
+
     let intersection = raycast_from_ray(
         rapier,
         mouse_interaction.ray_through_cursor?,

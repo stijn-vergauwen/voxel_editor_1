@@ -35,7 +35,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: fix blocks being built even when clicking ui (only set mouse target when not on ui)
 // TODO: drag select blocks
 // TODO: drag build to build multiple blocks at once
 // TODO: preview the blocks before they're built
