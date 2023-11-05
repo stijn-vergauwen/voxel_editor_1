@@ -17,9 +17,9 @@ impl Plugin for SelectModePlugin {
             .add_systems(
                 Update,
                 (
-                    handle_input,
+                    handle_selection_input,
                     draw_current_selection,
-                    apply_color_to_selection,
+                    handle_color_change_input,
                     delete_selection_on_keypress,
                 )
                     .run_if(in_state(EditorMode::Select)),
@@ -41,7 +41,7 @@ impl CurrentSelection {
     }
 }
 
-fn handle_input(
+fn handle_selection_input(
     mut on_mouse_pressed: EventReader<OnMousePressed>,
     mut current_selection: ResMut<CurrentSelection>,
 ) {
@@ -52,16 +52,7 @@ fn handle_input(
     }
 }
 
-fn toggle_coordinate_in_selection(coord: Coordinate, selection: &mut CurrentSelection) {
-    if selection.coordinates.contains(&coord) {
-        let coordinates_iterator = selection.coordinates.clone().into_iter();
-        selection.coordinates = coordinates_iterator.filter(|item| *item != coord).collect();
-    } else {
-        selection.coordinates.push(coord);
-    }
-}
-
-fn apply_color_to_selection(
+fn handle_color_change_input(
     current_selection: Res<CurrentSelection>,
     mut on_color_clicked: EventReader<OnColorClicked>,
     mut chunks: Query<&mut Chunk>,
@@ -71,11 +62,7 @@ fn apply_color_to_selection(
     for color_clicked in on_color_clicked.iter() {
         let color = color_clicked.color;
 
-        for coord in current_selection.coordinates.iter() {
-            if chunk.get_block(*coord).is_some() {
-                chunk.set_block(*coord, Some(Block::new(color)));
-            }
-        }
+        apply_color_to_selection(color, &current_selection, &mut chunk);
     }
 }
 
@@ -92,6 +79,23 @@ fn delete_selection_on_keypress(
     }
 }
 
+fn toggle_coordinate_in_selection(coord: Coordinate, selection: &mut CurrentSelection) {
+    if selection.coordinates.contains(&coord) {
+        let coordinates_iterator = selection.coordinates.clone().into_iter();
+        selection.coordinates = coordinates_iterator.filter(|item| *item != coord).collect();
+    } else {
+        selection.coordinates.push(coord);
+    }
+}
+
+fn apply_color_to_selection(color: Color, current_selection: &CurrentSelection, chunk: &mut Chunk) {
+    for coord in current_selection.coordinates.iter() {
+        if chunk.get_block(*coord).is_some() {
+            chunk.set_block(*coord, Some(Block::new(color)));
+        }
+    }
+}
+
 fn delete_selected_blocks(current_selection: &CurrentSelection, chunk: &mut Chunk) {
     for coord in current_selection.coordinates.iter() {
         chunk.set_block(*coord, None);
@@ -101,6 +105,8 @@ fn delete_selected_blocks(current_selection: &CurrentSelection, chunk: &mut Chun
 fn clear_current_selection(mut current_selection: ResMut<CurrentSelection>) {
     current_selection.clear_selection();
 }
+
+// Gizmos
 
 fn draw_current_selection(
     current_selection: Res<CurrentSelection>,
