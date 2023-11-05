@@ -2,6 +2,8 @@ mod interaction;
 
 use bevy::prelude::*;
 
+use crate::player::editor_modes::EditorMode;
+
 use self::interaction::SelectorInteractionPlugin;
 use super::{ColorLibrary, OnColorClicked};
 
@@ -11,7 +13,7 @@ impl Plugin for ColorSelectorPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(SelectorInteractionPlugin)
             .add_systems(Startup, spawn_selector_buttons)
-            .add_systems(Update, update_highlighted_ui);
+            .add_systems(Update, update_highlighted_ui.run_if(in_state(EditorMode::Build)));
     }
 }
 
