@@ -22,6 +22,8 @@ impl Plugin for MouseTargetPlugin {
     }
 }
 
+// TODO: set mouse ray & target even when on ui, so mouse drag can end on ui
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MouseTarget {
     pub point: Vec3,

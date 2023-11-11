@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     game_systems::color_library::OnColorClicked,
     newtypes::coordinate::Coordinate,
-    player::mouse_interaction::mouse_events::{OnMousePressed, OnMouseReleased},
+    player::mouse_interaction::mouse_events::{OnMouseDrag, OnMousePressed},
     world::{block::Block, chunk::Chunk, WorldSettings},
 };
 
@@ -17,8 +17,8 @@ impl Plugin for SelectModePlugin {
             .add_systems(
                 Update,
                 (
-                    handle_start_selecting,
-                    handle_stop_selecting,
+                    handle_mouse_pressed,
+                    handle_drag_selection,
                     draw_current_selection,
                     handle_color_change_input,
                     delete_selection_on_keypress,
@@ -33,7 +33,6 @@ const CLEAR_SELECTION_KEY: KeyCode = KeyCode::Delete;
 
 #[derive(Resource, Debug, Default)]
 pub struct CurrentSelection {
-    start_coord: Option<Coordinate>,
     coordinates: Vec<Coordinate>,
 }
 
@@ -43,32 +42,29 @@ impl CurrentSelection {
     }
 }
 
-// It would be nice if dragging was part of mouse_interaction, and there was an event containing all the relevant data for this action.
-
-fn handle_start_selecting(
+fn handle_mouse_pressed(
     mut on_mouse_pressed: EventReader<OnMousePressed>,
     mut current_selection: ResMut<CurrentSelection>,
 ) {
-    for mouse_pressed in on_mouse_pressed
+    for mouse_press in on_mouse_pressed
         .iter()
-        .filter(|mouse_pressed| mouse_pressed.button == MouseButton::Left)
+        .filter(|mouse_press| mouse_press.button == MouseButton::Left)
     {
-        current_selection.start_coord = mouse_pressed.target.map(|target| target.in_coord);
+        if let Some(coord) = mouse_press.target.map(|target| target.in_coord) {
+            toggle_coordinate_in_selection(coord, &mut current_selection);
+        }
     }
 }
 
-fn handle_stop_selecting(
-    mut on_mouse_released: EventReader<OnMouseReleased>,
+fn handle_drag_selection(
+    mut on_mouse_drag: EventReader<OnMouseDrag>,
     mut current_selection: ResMut<CurrentSelection>,
 ) {
-    for mouse_released in on_mouse_released
+    for mouse_drag in on_mouse_drag
         .iter()
-        .filter(|event| event.button == MouseButton::Left)
+        .filter(|mouse_drag| mouse_drag.button == MouseButton::Left && mouse_drag.drag_ended())
     {
-        let start = current_selection.start_coord;
-        let end = mouse_released.target.map(|target| target.in_coord);
-
-        update_selection(&mut current_selection, start, end);
+        update_selection(&mut current_selection, mouse_drag.start, mouse_drag.end);
     }
 }
 
@@ -77,8 +73,6 @@ fn update_selection(
     start: Option<Coordinate>,
     end: Option<Coordinate>,
 ) {
-    current_selection.start_coord = None;
-
     if let (Some(start), Some(end)) = (start, end) {
         if start == end {
             toggle_coordinate_in_selection(start, current_selection);
