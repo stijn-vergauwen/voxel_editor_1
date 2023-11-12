@@ -7,7 +7,7 @@ use crate::{
         mouse_events::{OnMouseDrag, OnMousePressed},
         mouse_target::MouseTarget,
     },
-    world::block::Block,
+    world::{block::Block, WorldSettings},
 };
 
 use super::{select::get_coordinates_between, EditorMode};
@@ -20,7 +20,12 @@ impl Plugin for BuildModePlugin {
             .add_event::<OnRemoveBlockRequest>()
             .add_systems(
                 Update,
-                (handle_mouse_press, handle_mouse_drag, handle_remove_input)
+                (
+                    handle_mouse_press,
+                    handle_mouse_drag,
+                    handle_remove_input,
+                    draw_block_placement_preview,
+                )
                     .run_if(in_state(EditorMode::Build)),
             );
     }
@@ -128,4 +133,28 @@ fn send_remove_block_request(
     target: MouseTarget,
 ) {
     remove_event.send(OnRemoveBlockRequest::new(Coordinate::from(target.in_coord)));
+}
+
+fn draw_block_placement_preview(
+    mut on_mouse_drag: EventReader<OnMouseDrag>,
+    mut gizmos: Gizmos,
+    key_input: Res<Input<KeyCode>>,
+    world_settings: Res<WorldSettings>,
+) {
+    for mouse_drag in on_mouse_drag.iter() {
+        if mouse_drag.button != BUILD_BUTTON || key_input.pressed(REMOVE_KEY) {
+            continue;
+        }
+
+        if let (Some(start), Some(end)) = (
+            mouse_drag.start.map(|target| target.out_coord),
+            mouse_drag.end.map(|target| target.out_coord),
+        ) {
+            for coord in get_coordinates_between(start, end).into_iter() {
+                let in_position = world_settings.coordinate_to_position(coord);
+
+                gizmos.cuboid(Transform::from_translation(in_position), Color::CYAN);
+            }
+        }
+    }
 }

@@ -35,8 +35,6 @@ use world::WorldPlugin;
 
 */
 
-// TODO: preview the blocks before they're built
-
 fn main() {
     App::new()
         .add_plugins((
