@@ -1,7 +1,7 @@
-pub mod newtypes;
-mod world;
 pub mod game_systems;
+pub mod newtypes;
 pub mod player;
+mod world;
 
 use bevy::{prelude::*, window};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -35,9 +35,7 @@ use world::WorldPlugin;
 
 */
 
-// TODO: drag build to build multiple blocks at once
 // TODO: preview the blocks before they're built
-// TODO: highlight selected blocks
 
 fn main() {
     App::new()

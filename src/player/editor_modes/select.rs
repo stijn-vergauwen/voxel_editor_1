@@ -9,6 +9,15 @@ use crate::{
 
 use super::EditorMode;
 
+/*
+    Tips for next iteration:
+
+    - clear previous selection by default, hold a key to add to selection
+    - Have a way to identify groups of blocks, like a wall, to select the full wall in one click
+    - Split each action to it's own module
+
+*/
+
 pub struct SelectModePlugin;
 
 impl Plugin for SelectModePlugin {
@@ -64,7 +73,11 @@ fn handle_drag_selection(
         .iter()
         .filter(|mouse_drag| mouse_drag.button == MouseButton::Left && mouse_drag.drag_ended())
     {
-        update_selection(&mut current_selection, mouse_drag.start, mouse_drag.end);
+        update_selection(
+            &mut current_selection,
+            mouse_drag.start.map(|target| target.in_coord),
+            mouse_drag.end.map(|target| target.in_coord),
+        );
     }
 }
 
@@ -142,7 +155,7 @@ fn clear_current_selection(mut current_selection: ResMut<CurrentSelection>) {
     current_selection.clear_selection();
 }
 
-fn get_coordinates_between(start: Coordinate, end: Coordinate) -> Vec<Coordinate> {
+pub fn get_coordinates_between(start: Coordinate, end: Coordinate) -> Vec<Coordinate> {
     let mut result = Vec::new();
 
     // MinMax objects with variant for coords would be nice.

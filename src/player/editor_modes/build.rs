@@ -3,11 +3,14 @@ use bevy::prelude::*;
 use crate::{
     game_systems::color_library::ColorLibrary,
     newtypes::coordinate::Coordinate,
-    player::mouse_interaction::{mouse_target::MouseTarget, mouse_events::OnMousePressed},
+    player::mouse_interaction::{
+        mouse_events::{OnMouseDrag, OnMousePressed},
+        mouse_target::MouseTarget,
+    },
     world::block::Block,
 };
 
-use super::EditorMode;
+use super::{select::get_coordinates_between, EditorMode};
 
 pub struct BuildModePlugin;
 
@@ -17,7 +20,8 @@ impl Plugin for BuildModePlugin {
             .add_event::<OnRemoveBlockRequest>()
             .add_systems(
                 Update,
-                (handle_build_input, handle_remove_input).run_if(in_state(EditorMode::Build)),
+                (handle_mouse_press, handle_mouse_drag, handle_remove_input)
+                    .run_if(in_state(EditorMode::Build)),
             );
     }
 }
@@ -48,7 +52,7 @@ impl OnRemoveBlockRequest {
     }
 }
 
-fn handle_build_input(
+fn handle_mouse_press(
     mut on_mouse_pressed: EventReader<OnMousePressed>,
     key_input: Res<Input<KeyCode>>,
     color_library: Res<ColorLibrary>,
@@ -60,7 +64,32 @@ fn handle_build_input(
         }
 
         if let Some(target) = mouse_pressed.target {
-            send_place_block_request(&mut place_event, &color_library, target);
+            send_place_block_request(&mut place_event, &color_library, target.out_coord);
+        }
+    }
+}
+
+fn handle_mouse_drag(
+    mut on_mouse_drag: EventReader<OnMouseDrag>,
+    key_input: Res<Input<KeyCode>>,
+    color_library: Res<ColorLibrary>,
+    mut place_event: EventWriter<OnPlaceBlockRequest>,
+) {
+    for mouse_drag in on_mouse_drag.iter() {
+        if mouse_drag.button != BUILD_BUTTON
+            || !mouse_drag.drag_ended()
+            || key_input.pressed(REMOVE_KEY)
+        {
+            continue;
+        }
+
+        if let (Some(start), Some(end)) = (
+            mouse_drag.start.map(|target| target.out_coord),
+            mouse_drag.end.map(|target| target.out_coord),
+        ) {
+            for coord in get_coordinates_between(start, end).into_iter() {
+                send_place_block_request(&mut place_event, &color_library, coord);
+            }
         }
     }
 }
@@ -68,13 +97,13 @@ fn handle_build_input(
 fn send_place_block_request(
     place_event: &mut EventWriter<OnPlaceBlockRequest>,
     color_library: &ColorLibrary,
-    target: MouseTarget,
+    coord: Coordinate,
 ) {
     place_event.send(OnPlaceBlockRequest::new(
         color_library
             .selected_color()
             .map(|color| Block::new(color)),
-        target.out_coord,
+        coord,
     ));
 }
 
