@@ -33,6 +33,15 @@ use world::WorldPlugin;
     - Save & load all built blocks to files.
     - Overview menu of these files (open, delete, rename etc.).
 
+Ok I'm calling this project done here, it's less than what I had in these plans but I made good progress towards them!
+Some things I struggled with in this project:
+- UI, I still feel a lot of friction when making menu's or buttons and stuff, and sliders or text inputs have to be manually made afaik
+- Events, just not quite used to thinking in events, learned a lot though.
+- Input, tied to events, user input is also something I don't have standard solutions for yet, and this project needed quite a bit of it
+- Saving & Loading, this derailed me a bit since I didn't know anything about reflection, for now I made my own workaround.
+
+On to the next version!
+
 */
 
 fn main() {
